@@ -49,7 +49,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,wght@1,300..700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,wght@1,300..700&family=Unbounded:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script type="application/ld+json">
 {
@@ -122,6 +122,7 @@
     width:26px;height:26px;border-radius:50%;border:1px solid var(--fg);
     display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0;
   }
+  nav .mark-text{font-family:'Unbounded',sans-serif;font-weight:600;letter-spacing:.005em;}
   nav ul{list-style:none;display:flex;gap:28px;}
   nav a{color:var(--fg);text-decoration:none;font-size:.85rem;letter-spacing:.03em;opacity:.85;}
   nav a:hover{opacity:1;}
@@ -209,11 +210,11 @@
     color:var(--muted);opacity:.7;pointer-events:none;
   }
   .hero-title{
-    position:relative;z-index:1;font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:-.02em;
-    font-size:clamp(2.1rem,5.6vw,4rem);line-height:1.04;color:var(--fg);
+    position:relative;z-index:1;font-family:'Unbounded',sans-serif;font-weight:700;letter-spacing:-.01em;
+    font-size:clamp(2rem,5.4vw,3.7rem);line-height:1.1;color:var(--fg);
   }
   .hero-info{
-    position:relative;z-index:1;margin-top:20px;max-width:460px;color:var(--muted);font-size:1rem;line-height:1.65;
+    position:relative;z-index:1;margin-top:20px;max-width:460px;color:rgba(243,242,238,.82);font-size:1rem;line-height:1.65;font-weight:500;
   }
   .hero-cta{
     position:relative;z-index:1;margin-top:38px;display:inline-flex;align-items:center;gap:10px;
@@ -272,11 +273,6 @@
   .organic-note{font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-top:16px;line-height:1.6;letter-spacing:.01em;}
   .bio-side{color:var(--muted);font-size:.98rem;line-height:1.75;}
   .bio-side strong{color:var(--fg);font-weight:600;}
-  .bio-side-inner{display:flex;gap:26px;align-items:flex-start;}
-  .bio-side-text{flex:1;min-width:0;}
-  @media (max-width:640px){
-    .bio-side-inner{flex-direction:column;align-items:center;text-align:center;}
-  }
 
   /* circular "bubble" window next to the bio text - holds a slow auto-sliding
      set of behind-the-scenes photos, echoing the hero's floating-bubble look */
@@ -307,6 +303,24 @@
   .journey-text{color:var(--fg);font-size:1.02rem;line-height:1.85;max-width:820px;}
   .journey-chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;}
   .journey-chips span{font-family:var(--mono);border:1px solid var(--line);border-radius:2px;padding:7px 16px;font-size:.72rem;color:var(--muted);letter-spacing:.02em;}
+  .journey-bubble{margin-top:38px;display:flex;justify-content:center;gap:38px;flex-wrap:wrap;}
+  .journey-bubble-item{display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .journey-bubble-caption{font-family:var(--mono);font-size:.65rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:center;}
+  .ig-bubble-wrap{
+    display:flex;align-items:center;justify-content:center;
+    width:172px;height:172px;border-radius:50%;padding:4px;flex:0 0 auto;
+    background:conic-gradient(from 0deg, #f2b544, #ff6f9c, #a06bf0, #22d3c5, #f2b544);
+    animation:bubbleFloat 6s ease-in-out infinite;text-decoration:none;
+    cursor:pointer;transition:transform .4s cubic-bezier(.16,1,.3,1);
+  }
+  .ig-bubble-wrap:hover{transform:scale(1.06);}
+  .ig-bubble{
+    width:100%;height:100%;border-radius:50%;overflow:hidden;position:relative;
+    background:var(--card);box-shadow:0 12px 34px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.05);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .ig-bubble svg{width:42%;height:42%;}
+  @media (max-width:640px){.ig-bubble-wrap{width:150px;height:150px;}}
 
   /* WORK — all three clients side by side, each a column with info on top
      and a small clickable video window underneath */
@@ -399,6 +413,11 @@
   .vision-statement{
     margin-top:26px;max-width:480px;color:var(--muted);font-size:.92rem;line-height:1.6;
     font-style:italic;
+  }
+  @media (max-width:640px){
+    .mission{padding-top:34px;padding-bottom:34px;}
+    .mission-label{margin-bottom:12px;}
+    .vision-statement{margin-top:16px;}
   }
 
   /* SERVICES - compact rows, no big boxes */
@@ -565,7 +584,6 @@
 <section class="bio" id="bio">
   <div class="section-head reveal">
     <div>
-      <div class="num">01 - About</div>
       <h2>The creator</h2>
     </div>
     <p>Content that gets a venue booked out, a product noticed, and a feed worth following.</p>
@@ -582,24 +600,9 @@
       <p class="organic-note">Growth figures shown are organic. Paid campaigns are run in collaboration with a paid media agency.</p>
     </div>
     <div class="bio-side reveal">
-      <div class="bio-side-inner">
-        <div class="creator-bubble-wrap" aria-hidden="true">
-          <div class="creator-bubble">
-            <div class="creator-track">
-              <img src="images/creator/creator-1.jpg" alt="">
-              <img src="images/creator/creator-2.jpg" alt="">
-              <img src="images/creator/creator-3.jpg" alt="">
-              <img src="images/creator/creator-4.jpg" alt="">
-              <img src="images/creator/creator-5.jpg" alt="">
-            </div>
-          </div>
-        </div>
-        <div class="bio-side-text">
-          <p>Currently working with <strong>AMANO Group</strong>, a hotel chain with a rooftop bar overlooking London. Past work spans a <strong>modern French restaurant chain</strong> and a group of three very different London pubs - each with its own crowd, its own rhythm, and its own story to film.</p>
-          <br>
-          <p>Every project starts on location: real venues, real teams, real product. The focus is always the same - impactful content, storytelling that lands, and consistency that keeps a brand showing up in the feed, not just interrupting it.</p>
-        </div>
-      </div>
+      <p>Currently working with <strong>AMANO Group</strong>, a hotel chain with a rooftop bar overlooking London. Past work spans a <strong>modern French restaurant chain</strong> and a group of three very different London pubs - each with its own crowd, its own rhythm, and its own story to film.</p>
+      <br>
+      <p>Every project starts on location: real venues, real teams, real product. The focus is always the same - impactful content, storytelling that lands, and consistency that keeps a brand showing up in the feed, not just interrupting it.</p>
     </div>
   </div>
   <div class="journey reveal">
@@ -612,6 +615,42 @@
       <span>Melbourne, Australia</span>
       <span>London, UK</span>
     </div>
+    <div class="journey-bubble">
+      <div class="journey-bubble-item">
+        <div class="creator-bubble-wrap" aria-hidden="true">
+          <div class="creator-bubble">
+            <div class="creator-track">
+              <img src="images/creator/creator-1.jpg" alt="">
+              <img src="images/creator/creator-2.jpg" alt="">
+              <img src="images/creator/creator-3.jpg" alt="">
+              <img src="images/creator/creator-4.jpg" alt="">
+              <img src="images/creator/creator-5.jpg" alt="">
+            </div>
+          </div>
+        </div>
+        <div class="journey-bubble-caption">Behind the scenes</div>
+      </div>
+      <div class="journey-bubble-item">
+        <a class="ig-bubble-wrap" href="https://www.instagram.com/thesawyeredit/" target="_blank" rel="noopener" aria-label="Follow Sawyer on Instagram - lifestyle and travel">
+          <div class="ig-bubble">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <defs>
+                <linearGradient id="igGrad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#f2b544"/>
+                  <stop offset="35%" stop-color="#ff6f9c"/>
+                  <stop offset="68%" stop-color="#a06bf0"/>
+                  <stop offset="100%" stop-color="#22d3c5"/>
+                </linearGradient>
+              </defs>
+              <rect x="2" y="2" width="20" height="20" rx="6" stroke="url(#igGrad)" stroke-width="1.7"/>
+              <circle cx="12" cy="12" r="4.3" stroke="url(#igGrad)" stroke-width="1.7"/>
+              <circle cx="17.3" cy="6.7" r="1.15" fill="url(#igGrad)"/>
+            </svg>
+          </div>
+        </a>
+        <div class="journey-bubble-caption">Lifestyle &amp; travel</div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -619,7 +658,6 @@
 <section class="work" id="work">
   <div class="section-head reveal">
     <div>
-      <div class="num">02 - Selected Work</div>
       <h2>Clients</h2>
     </div>
     <p>One active client right now - plus recent work across restaurants and pubs.</p>
@@ -628,7 +666,6 @@
   <div class="work-grid">
   <div class="project reveal">
     <div class="p-meta">
-      <div class="p-index">01 / Hospitality</div>
       <div class="p-name">AMANO Group</div>
       <div class="p-dates">October 2025 - Present · Social Media &amp; Marketing Manager</div>
       <div class="p-tags"><span class="active">● Active</span><span>Hotel Chain</span><span>Rooftop Bar</span><span>Covent Garden</span></div>
@@ -675,7 +712,6 @@
 
   <div class="project reveal">
     <div class="p-meta">
-      <div class="p-index">02 / Restaurant</div>
       <div class="p-name">Aubaine</div>
       <div class="p-dates">March 2024 - June 2025 · Social Media &amp; Event Manager</div>
       <div class="p-tags"><span>Restaurant Chain</span><span>Multi-site</span></div>
@@ -722,7 +758,6 @@
 
   <div class="project reveal">
     <div class="p-meta">
-      <div class="p-index">03 / Pub Group</div>
       <div class="p-name">Three London Pubs</div>
       <div class="p-dates">September 2024 - January 2026</div>
       <div class="p-tags"><span>Pub Group</span><span>Belgravia</span><span>Rotherhithe</span><span>Wandsworth</span></div>
@@ -783,7 +818,6 @@
 <section class="services" id="services">
   <div class="section-head reveal">
     <div>
-      <div class="num">03 - Services</div>
       <h2>What I do</h2>
     </div>
     <p>Two things, done properly, rather than ten things done half-heartedly.</p>
@@ -827,7 +861,6 @@
 <section class="approach" id="approach">
   <div class="section-head reveal">
     <div>
-      <div class="num">04 - Approach</div>
       <h2>How it works</h2>
     </div>
     <p>Simple process, built for venues and brands that don't have time to spare.</p>
