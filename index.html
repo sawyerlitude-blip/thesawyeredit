@@ -1085,6 +1085,9 @@
         const v = document.createElement('video');
         v.src = src; v.controls = true; v.preload = 'metadata'; v.className = 'modal-video';
         v.setAttribute('playsinline', '');
+        // still-frame preview shown before play, generated per clip so every
+        // phone frame shows what the video actually looks like at a glance
+        v.poster = src.replace('videos/', 'images/video-posters/').replace(/\.mp4$/, '.jpg');
         container.appendChild(phoneFrame(v));
       });
     } else {
