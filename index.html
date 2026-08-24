@@ -534,6 +534,22 @@
     display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.6rem;
     text-align:center;padding:9px;line-height:1.35;
   }
+  /* still-picture preview shown on a plain black background before a clip is
+     played - no native video controls cluttering it until you actually tap
+     play, at which point a normal <video controls> takes over (same
+     fullscreen button as always) */
+  .phone-poster{width:100%;height:100%;position:relative;cursor:pointer;background:#000;}
+  .phone-poster img{width:100%;height:100%;object-fit:contain;display:block;background:#000;}
+  .phone-poster-play{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.55);
+    display:flex;align-items:center;justify-content:center;
+    border:1.5px solid rgba(255,255,255,.85);
+  }
+  .phone-poster-play::before{
+    content:'';width:0;height:0;border-style:solid;border-width:6px 0 6px 10px;
+    border-color:transparent transparent transparent #fff;margin-left:2px;
+  }
   .modal-video{width:100%;height:100%;object-fit:contain;background:#000;display:block;}
   .modal-venues{display:flex;flex-direction:column;gap:18px;margin-top:20px;}
   .modal-venue-title{
@@ -1082,13 +1098,27 @@
   function fillVideoGrid(container, videos){
     if(videos.length){
       videos.forEach((src, i)=>{
-        const v = document.createElement('video');
-        v.src = src; v.controls = true; v.preload = 'metadata'; v.className = 'modal-video';
-        v.setAttribute('playsinline', '');
-        // still-frame preview shown before play, generated per clip so every
-        // phone frame shows what the video actually looks like at a glance
-        v.poster = src.replace('videos/', 'images/video-posters/').replace(/\.mp4$/, '.jpg');
-        container.appendChild(phoneFrame(v));
+        // start as a plain picture on a black background (no native video
+        // controls cluttering the small phone frame) - tapping it swaps in a
+        // normal <video controls autoplay> element, same as before, fullscreen
+        // button included
+        const posterSrc = src.replace('videos/', 'images/video-posters/').replace(/\.mp4$/, '.jpg');
+        const wrap = document.createElement('div');
+        wrap.className = 'phone-poster';
+        const img = document.createElement('img');
+        img.src = posterSrc; img.alt = ''; img.loading = 'lazy';
+        const playBtn = document.createElement('div');
+        playBtn.className = 'phone-poster-play';
+        wrap.appendChild(img);
+        wrap.appendChild(playBtn);
+        wrap.addEventListener('click', ()=>{
+          const v = document.createElement('video');
+          v.src = src; v.controls = true; v.autoplay = true; v.className = 'modal-video';
+          v.setAttribute('playsinline', '');
+          wrap.replaceWith(v);
+          v.play().catch(()=>{});
+        });
+        container.appendChild(phoneFrame(wrap));
       });
     } else {
       for(let i=0;i<3;i++){
