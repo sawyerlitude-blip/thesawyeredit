@@ -508,47 +508,67 @@
   .modal-head h3{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.6rem,3vw,2.2rem);font-weight:700;margin-top:8px;}
 
   .modal-grid{
-    display:flex;gap:22px;margin-top:28px;overflow-x:auto;padding:10px 4px 18px;
-    scroll-snap-type:x proximity;
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));
+    gap:18px;margin-top:28px;
   }
-  .modal-grid::-webkit-scrollbar{height:6px;}
-  .modal-grid::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;}
 
-  /* iPhone-style frame - small, cinematic preview of each clip */
-  .phone-frame{
-    flex:0 0 auto;scroll-snap-align:start;width:84px;aspect-ratio:9/19.5;
-    background:#0b0b0d;border-radius:18px;padding:5px;position:relative;
-    box-shadow:0 14px 30px rgba(0,0,0,.55), inset 0 0 0 1.2px rgba(255,255,255,.08);
-    transition:transform .35s cubic-bezier(.16,1,.3,1);
+  /* square, gallery-wall style preview card - no phone chrome. a soft
+     charcoal frame with a hairline gold edge and quiet corner brackets
+     that light up on hover, in keeping with a higher-end feel */
+  .video-card{
+    position:relative;aspect-ratio:1/1;border-radius:14px;overflow:hidden;
+    background:#0b0b0d;border:1px solid rgba(242,181,68,.18);
+    box-shadow:0 16px 32px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.03);
+    transition:transform .45s cubic-bezier(.16,1,.3,1), border-color .35s ease, box-shadow .35s ease;
   }
-  .phone-frame:hover{transform:translateY(-6px);}
-  .phone-frame::before{
-    content:'';position:absolute;top:9px;left:50%;transform:translateX(-50%);
-    width:34%;height:8px;background:#0b0b0d;border-radius:6px;z-index:2;
+  .video-card::before,.video-card::after{
+    content:'';position:absolute;width:15px;height:15px;pointer-events:none;z-index:2;
+    transition:border-color .4s ease;
   }
-  .phone-screen{
-    width:100%;height:100%;border-radius:13px;overflow:hidden;position:relative;background:#000;
+  .video-card::before{
+    top:9px;left:9px;border-top:1.4px solid rgba(242,181,68,0);
+    border-left:1.4px solid rgba(242,181,68,0);border-radius:3px 0 0 0;
   }
+  .video-card::after{
+    bottom:9px;right:9px;border-bottom:1.4px solid rgba(242,181,68,0);
+    border-right:1.4px solid rgba(242,181,68,0);border-radius:0 0 3px 0;
+  }
+  .video-card:hover{
+    transform:translateY(-6px);
+    border-color:rgba(242,181,68,.5);
+    box-shadow:0 26px 46px rgba(0,0,0,.6), 0 0 0 1px rgba(242,181,68,.14);
+  }
+  .video-card:hover::before,.video-card:hover::after{border-color:var(--accent);}
+  .video-card .phone-poster,.video-card .modal-video,.video-card .video-slot{width:100%;height:100%;}
+
   .video-slot{
-    width:100%;height:100%;background:var(--card);
-    display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.6rem;
-    text-align:center;padding:9px;line-height:1.35;
+    background:linear-gradient(160deg,#141416,#0b0b0d);
+    display:flex;align-items:center;justify-content:center;color:var(--muted);
+    font-family:var(--mono);font-size:.62rem;letter-spacing:.05em;text-transform:uppercase;
+    text-align:center;padding:14px;line-height:1.4;
   }
-  /* still-picture preview shown on a plain black background before a clip is
-     played - no native video controls cluttering it until you actually tap
-     play, at which point a normal <video controls> takes over (same
-     fullscreen button as always) */
-  .phone-poster{width:100%;height:100%;position:relative;cursor:pointer;background:#000;}
-  .phone-poster img{width:100%;height:100%;object-fit:contain;display:block;background:#000;}
+  /* still-picture preview shown before a clip is played - no native video
+     controls cluttering the card until you actually tap play, at which
+     point a normal <video controls> takes over (same fullscreen button) */
+  .phone-poster{position:relative;cursor:pointer;background:#000;}
+  .phone-poster img{width:100%;height:100%;object-fit:cover;display:block;background:#000;}
   .phone-poster-play{
     position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-    width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.55);
+    width:38px;height:38px;border-radius:50%;
+    background:rgba(6,6,7,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
     display:flex;align-items:center;justify-content:center;
-    border:1.5px solid rgba(255,255,255,.85);
+    border:1.4px solid rgba(242,181,68,.8);
+    transition:transform .35s cubic-bezier(.16,1,.3,1), background .3s ease;
   }
+  .video-card:hover .phone-poster-play{
+    transform:translate(-50%,-50%) scale(1.08);
+    background:var(--accent);
+  }
+  .video-card:hover .phone-poster-play::before{border-color:transparent transparent transparent #0a0a0c;}
   .phone-poster-play::before{
-    content:'';width:0;height:0;border-style:solid;border-width:6px 0 6px 10px;
-    border-color:transparent transparent transparent #fff;margin-left:2px;
+    content:'';width:0;height:0;border-style:solid;border-width:7px 0 7px 11px;
+    border-color:transparent transparent transparent var(--accent);margin-left:3px;
+    transition:border-color .3s ease;
   }
   .modal-video{width:100%;height:100%;object-fit:contain;background:#000;display:block;}
   .modal-venues{display:flex;flex-direction:column;gap:18px;margin-top:20px;}
@@ -994,16 +1014,12 @@
         'photos/amano/amano-p46.jpg','photos/amano/amano-p47.jpg','photos/amano/amano-p48.jpg',
         'photos/amano/amano-p49.jpg','photos/amano/amano-p50.jpg','photos/amano/amano-p51.jpg',
         'photos/amano/amano-p52.jpg','photos/amano/amano-p53.jpg','photos/amano/amano-p54.jpg',
-        'photos/amano/amano-p55.jpg','photos/amano/amano-p56.jpg','photos/amano/amano-p57.jpg',
-        'photos/amano/amano-p58.jpg','photos/amano/amano-p59.jpg','photos/amano/amano-p60.jpg',
-        'photos/amano/amano-p61.jpg','photos/amano/amano-p62.jpg','photos/amano/amano-p63.jpg',
-        'photos/amano/amano-p64.jpg','photos/amano/amano-p65.jpg','photos/amano/amano-p66.jpg',
-        'photos/amano/amano-p67.jpg','photos/amano/amano-p68.jpg','photos/amano/amano-p69.jpg',
-        'photos/amano/amano-p70.jpg','photos/amano/amano-p71.jpg',
+        'photos/amano/amano-p55.jpg','photos/amano/amano-p56.jpg',
       ],
       videos:[
         'videos/amano/amano-13.mp4','videos/amano/amano-9.mp4','videos/amano/amano-16.mp4',
-        'videos/amano/amano-34.mp4','videos/amano/amano-1.mp4','videos/amano/amano-2.mp4',
+        'videos/amano/amano-34.mp4','videos/amano/amano-50.mp4','videos/amano/amano-51.mp4',
+        'videos/amano/amano-52.mp4','videos/amano/amano-1.mp4','videos/amano/amano-2.mp4',
         'videos/amano/amano-3.mp4','videos/amano/amano-4.mp4','videos/amano/amano-5.mp4',
         'videos/amano/amano-6.mp4','videos/amano/amano-7.mp4','videos/amano/amano-8.mp4',
         'videos/amano/amano-10.mp4','videos/amano/amano-11.mp4','videos/amano/amano-12.mp4',
@@ -1085,21 +1101,18 @@
     });
   }
 
-  function phoneFrame(innerEl){
-    const frame = document.createElement('div');
-    frame.className = 'phone-frame';
-    const screen = document.createElement('div');
-    screen.className = 'phone-screen';
-    screen.appendChild(innerEl);
-    frame.appendChild(screen);
-    return frame;
+  function videoCard(innerEl){
+    const card = document.createElement('div');
+    card.className = 'video-card';
+    card.appendChild(innerEl);
+    return card;
   }
 
   function fillVideoGrid(container, videos){
     if(videos.length){
       videos.forEach((src, i)=>{
         // start as a plain picture on a black background (no native video
-        // controls cluttering the small phone frame) - tapping it swaps in a
+        // controls cluttering the small card) - tapping it swaps in a
         // normal <video controls autoplay> element, same as before, fullscreen
         // button included
         const posterSrc = src.replace('videos/', 'images/video-posters/').replace(/\.mp4$/, '.jpg');
@@ -1118,14 +1131,14 @@
           wrap.replaceWith(v);
           v.play().catch(()=>{});
         });
-        container.appendChild(phoneFrame(wrap));
+        container.appendChild(videoCard(wrap));
       });
     } else {
       for(let i=0;i<3;i++){
         const slot = document.createElement('div');
         slot.className = 'video-slot';
         slot.textContent = 'Video coming soon';
-        container.appendChild(phoneFrame(slot));
+        container.appendChild(videoCard(slot));
       }
     }
   }
