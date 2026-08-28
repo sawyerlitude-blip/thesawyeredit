@@ -66,14 +66,14 @@
 </script>
 <style>
   :root{
-    --bg:#060607;
-    --bg-2:#0d0d0f;
+    --bg:#0a0908;
+    --bg-2:#100e0c;
     --fg:#f3f2ee;
-    --muted:#8a8a92;
-    --accent:#f2b544;
-    --accent-2:#22d3c5;
+    --muted:#94897c;
+    --accent:#e0a045;
+    --accent-2:#1d928d;
     --line:rgba(243,242,238,0.12);
-    --card:#151517;
+    --card:#171310;
     --mono:'JetBrains Mono', ui-monospace, Menlo, monospace;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
@@ -159,7 +159,7 @@
   .hero-glow{
     position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
     width:min(50vw,48vh);height:min(50vw,48vh);border-radius:50%;z-index:0;pointer-events:none;
-    background:radial-gradient(circle, rgba(242,181,68,.11), transparent 70%);
+    background:radial-gradient(circle, rgba(224,160,69,.11), transparent 70%);
     filter:blur(28px);animation:monogramPulse 7s ease-in-out infinite;
   }
   @keyframes monogramPulse{0%,100%{opacity:.65;}50%{opacity:.85;}}
@@ -207,7 +207,7 @@
     -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
     -webkit-mask-position:center;mask-position:center;
     background:conic-gradient(from var(--sheen-ang,0deg) at 50% 50%,
-      #f2b544, #ff6f9c, #a06bf0, #22d3c5, #f2b544);
+      #e0a045, #c9705a, #8b50b1, #1d928d, #e0a045);
     mix-blend-mode:color;opacity:.6;
   }
   .drag-hint{
@@ -315,7 +315,7 @@
   .ig-bubble-wrap{
     display:flex;align-items:center;justify-content:center;
     width:172px;height:172px;border-radius:50%;padding:4px;flex:0 0 auto;
-    background:conic-gradient(from 0deg, #f2b544, #ff6f9c, #a06bf0, #22d3c5, #f2b544);
+    background:conic-gradient(from 0deg, #e0a045, #c9705a, #8b50b1, #1d928d, #e0a045);
     animation:bubbleFloat 6s ease-in-out infinite;text-decoration:none;
     cursor:pointer;transition:transform .4s cubic-bezier(.16,1,.3,1);
   }
@@ -491,7 +491,7 @@
   }
   .modal-overlay.open{display:flex;}
   .modal{
-    background:radial-gradient(circle at 30% 0%, rgba(242,181,68,.06), transparent 55%), var(--bg-2);
+    background:radial-gradient(circle at 30% 0%, rgba(224,160,69,.06), transparent 55%), var(--bg-2);
     border:1px solid var(--line);border-radius:20px;
     max-width:1040px;width:100%;max-height:88vh;overflow-y:auto;padding:38px;position:relative;
   }
@@ -517,7 +517,7 @@
      that light up on hover, in keeping with a higher-end feel */
   .video-card{
     position:relative;aspect-ratio:1/1;border-radius:14px;overflow:hidden;
-    background:#0b0b0d;border:1px solid rgba(242,181,68,.18);
+    background:#0b0b0d;border:1px solid rgba(224,160,69,.18);
     box-shadow:0 16px 32px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.03);
     transition:transform .45s cubic-bezier(.16,1,.3,1), border-color .35s ease, box-shadow .35s ease;
   }
@@ -526,17 +526,17 @@
     transition:border-color .4s ease;
   }
   .video-card::before{
-    top:9px;left:9px;border-top:1.4px solid rgba(242,181,68,0);
-    border-left:1.4px solid rgba(242,181,68,0);border-radius:3px 0 0 0;
+    top:9px;left:9px;border-top:1.4px solid rgba(224,160,69,0);
+    border-left:1.4px solid rgba(224,160,69,0);border-radius:3px 0 0 0;
   }
   .video-card::after{
-    bottom:9px;right:9px;border-bottom:1.4px solid rgba(242,181,68,0);
-    border-right:1.4px solid rgba(242,181,68,0);border-radius:0 0 3px 0;
+    bottom:9px;right:9px;border-bottom:1.4px solid rgba(224,160,69,0);
+    border-right:1.4px solid rgba(224,160,69,0);border-radius:0 0 3px 0;
   }
   .video-card:hover{
     transform:translateY(-6px);
-    border-color:rgba(242,181,68,.5);
-    box-shadow:0 26px 46px rgba(0,0,0,.6), 0 0 0 1px rgba(242,181,68,.14);
+    border-color:rgba(224,160,69,.5);
+    box-shadow:0 26px 46px rgba(0,0,0,.6), 0 0 0 1px rgba(224,160,69,.14);
   }
   .video-card:hover::before,.video-card:hover::after{border-color:var(--accent);}
   .video-card .phone-poster,.video-card .modal-video,.video-card .video-slot{width:100%;height:100%;}
@@ -557,7 +557,7 @@
     width:38px;height:38px;border-radius:50%;
     background:rgba(6,6,7,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
     display:flex;align-items:center;justify-content:center;
-    border:1.4px solid rgba(242,181,68,.8);
+    border:1.4px solid rgba(224,160,69,.8);
     transition:transform .35s cubic-bezier(.16,1,.3,1), background .3s ease;
   }
   .video-card:hover .phone-poster-play{
@@ -690,10 +690,10 @@
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <defs>
                 <linearGradient id="igGrad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stop-color="#f2b544"/>
-                  <stop offset="35%" stop-color="#ff6f9c"/>
-                  <stop offset="68%" stop-color="#a06bf0"/>
-                  <stop offset="100%" stop-color="#22d3c5"/>
+                  <stop offset="0%" stop-color="#e0a045"/>
+                  <stop offset="35%" stop-color="#c9705a"/>
+                  <stop offset="68%" stop-color="#8b50b1"/>
+                  <stop offset="100%" stop-color="#1d928d"/>
                 </linearGradient>
               </defs>
               <rect x="2" y="2" width="20" height="20" rx="6" stroke="url(#igGrad)" stroke-width="1.7"/>
@@ -767,7 +767,7 @@
   <div class="project reveal">
     <div class="p-meta">
       <div class="p-name">Aubaine</div>
-      <div class="p-dates">March 2024 - June 2025 · Social Media &amp; Event Manager</div>
+      <div class="p-dates">March 2023 - June 2025 · Social Media &amp; Event Manager</div>
       <div class="p-tags"><span>Restaurant Chain</span><span>Multi-site</span></div>
       <p class="p-desc">Focused on showcasing the dishes across all of Aubaine's London sites - Notting Hill, Marylebone, Mayfair, Brompton and Selfridges. Modern French dining shot for the feed.</p>
       <div class="p-result"><span class="p-result-n">+12%</span> organic growth in followers &amp; engagement over 3 years</div>
@@ -1004,17 +1004,7 @@
         'photos/amano/amano-p16.jpg','photos/amano/amano-p17.jpg','photos/amano/amano-p18.jpg',
         'photos/amano/amano-p19.jpg','photos/amano/amano-p20.jpg','photos/amano/amano-p21.jpg',
         'photos/amano/amano-p22.jpg','photos/amano/amano-p23.jpg','photos/amano/amano-p24.jpg',
-        'photos/amano/amano-p25.jpg','photos/amano/amano-p26.jpg','photos/amano/amano-p27.jpg',
-        'photos/amano/amano-p28.jpg','photos/amano/amano-p29.jpg','photos/amano/amano-p30.jpg',
-        'photos/amano/amano-p31.jpg','photos/amano/amano-p32.jpg','photos/amano/amano-p33.jpg',
-        'photos/amano/amano-p34.jpg','photos/amano/amano-p35.jpg','photos/amano/amano-p36.jpg',
-        'photos/amano/amano-p37.jpg','photos/amano/amano-p38.jpg','photos/amano/amano-p39.jpg',
-        'photos/amano/amano-p40.jpg','photos/amano/amano-p41.jpg','photos/amano/amano-p42.jpg',
-        'photos/amano/amano-p43.jpg','photos/amano/amano-p44.jpg','photos/amano/amano-p45.jpg',
-        'photos/amano/amano-p46.jpg','photos/amano/amano-p47.jpg','photos/amano/amano-p48.jpg',
-        'photos/amano/amano-p49.jpg','photos/amano/amano-p50.jpg','photos/amano/amano-p51.jpg',
-        'photos/amano/amano-p52.jpg','photos/amano/amano-p53.jpg','photos/amano/amano-p54.jpg',
-        'photos/amano/amano-p55.jpg','photos/amano/amano-p56.jpg',
+        'photos/amano/amano-p25.jpg',
       ],
       videos:[
         'videos/amano/amano-13.mp4','videos/amano/amano-9.mp4','videos/amano/amano-16.mp4',
