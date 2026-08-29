@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S 3D test</title>
+<meta name="robots" content="noindex">
+<style>
+  html,body{margin:0;background:#f1efec;overflow:hidden;height:100%;font-family:'Space Grotesk',Arial,sans-serif;}
+  canvas{display:block;touch-action:none;}
+  .hint{position:fixed;bottom:18px;left:0;right:0;text-align:center;font-size:12px;letter-spacing:.08em;
+    text-transform:uppercase;color:#6f6a63;pointer-events:none;}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="hint">Drag to rotate - test page, not linked from the site</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  var SHAPE_PTS = [[-33.13804626464844,47.305328369140625],[-36.69379425048828,43.442291259765625],[-39.0423469543457,39.44755935668945],[-40.18370056152344,35.32113265991211],[-40.53488540649414,30.953264236450195],[-40.09590148925781,26.343957901000977],[-38.84480667114258,21.844396591186523],[-36.781593322753906,17.45458221435547],[-33.774566650390625,13.48179817199707],[-29.823734283447266,9.926047325134277],[-20.934356689453125,5.272842884063721],[-7.106437683105469,-0.47781580686569214],[1.5414994955062866,-4.40670108795166],[5.009453773498535,-6.51381254196167],[7.006820201873779,-7.303979396820068],[7.533597946166992,-6.7772016525268555],[9.113931655883789,-7.786859035491943],[11.747820854187012,-10.332952499389648],[12.450191497802734,-11.957183837890625],[11.221043586730957,-12.659554481506348],[10.05774211883545,-14.393531799316406],[8.960288047790527,-17.159114837646484],[7.160463809967041,-18.89309310913086],[4.658268451690674,-19.595462799072266],[1.8926846981048584,-19.749107360839844],[-1.1362881660461426,-19.354022979736328],[-4.296955585479736,-17.72979164123535],[-7.589317321777344,-14.876411437988281],[-11.562100410461426,-10.091512680053711],[-16.21530532836914,-3.375094175338745],[-19.573514938354492,0.6196381449699402],[-21.636728286743164,1.8926846981048584],[-26.333829879760742,0.5098927617073059],[-33.66482162475586,-3.528737783432007],[-37.835147857666016,-6.579659938812256],[-38.84480667114258,-8.64287281036377],[-37.835147857666016,-13.647263526916504],[-34.806175231933594,-21.59282875061035],[-31.799150466918945,-27.650775909423828],[-28.814077377319336,-31.82110023498535],[-25.280275344848633,-35.398799896240234],[-21.19774627685547,-38.38387680053711],[-21.109949111938477,-40.66658020019531],[-25.01688575744629,-42.24691390991211],[-24.09502410888672,-43.783348083496094],[-18.3443660736084,-45.27588653564453],[-9.806174278259277,-46.10995101928711],[1.5195503234863281,-46.28554153442383],[6.8970746994018555,-46.24164581298828],[6.326398849487305,-45.97825622558594],[7.55554723739624,-45.49537658691406],[10.58452033996582,-44.793006896972656],[14.710947036743164,-44.44182205200195],[19.93482780456543,-44.44182205200195],[24.7197265625,-43.629703521728516],[29.065645217895508,-42.00547409057617],[31.326398849487305,-40.84217071533203],[31.501991271972656,-40.139801025390625],[30.141149520874023,-39.393531799316406],[27.243871688842773,-38.60336685180664],[28.099884033203125,-36.0792236328125],[32.709190368652344,-31.82110023498535],[35.95765686035156,-27.387386322021484],[37.84527587890625,-22.778079986572266],[38.81103515625,-17.663944244384766],[38.85493469238281,-12.0449800491333],[37.99892044067383,-6.491863250732422],[36.24299240112305,-1.0045937299728394],[34.245628356933594,2.9242913722991943],[32.00682067871094,5.294792175292969],[28.099884033203125,7.972579479217529],[22.524818420410156,10.957653999328613],[12.274599075317383,15.084080696105957],[-2.6507747173309326,20.35186004638672],[-11.540151596069336,24.390491485595703],[-14.393531799316406,27.19997215270996],[-14.942258834838867,29.570472717285156],[-13.186332702636719,31.501991271972656],[-9.56473445892334,32.20436096191406],[-4.077464580535889,31.67758560180664],[0.9927724599838257,29.965557098388672],[5.645977020263672,27.06827735900879],[8.12622356414795,26.23421287536621],[8.433509826660156,27.463361740112305],[9.28952407836914,27.4414119720459],[10.694265365600586,26.168365478515625],[11.111297607421875,25.09286117553711],[10.540621757507324,24.21489715576172],[10.65036678314209,22.919902801513672],[11.440533638000488,21.207874298095703],[12.581886291503906,19.97872543334961],[14.074423789978027,19.23245620727539],[18.310596466064453,21.844396591186523],[25.290403366088867,27.814546585083008],[28.27547836303711,32.928680419921875],[27.265819549560547,37.18680191040039],[24.280744552612305,41.313228607177734],[19.320253372192383,45.30796432495117],[12.955020904541016,48.644222259521484],[5.185046672821045,51.3220100402832],[-3.506788730621338,53.012088775634766],[-13.120485305786133,53.71445846557617],[-21.28554344177246,52.85844421386719],[-28.00196075439453,50.44404602050781]];
+
+  var scene = new THREE.Scene();
+  var canvas = document.getElementById('c');
+  var camera = new THREE.PerspectiveCamera(38, innerWidth/innerHeight, 0.1, 1000);
+  camera.position.set(0, 0, 210);
+
+  var renderer = new THREE.WebGLRenderer({canvas: canvas, antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  var key = new THREE.DirectionalLight(0xffffff, 0.9);
+  key.position.set(-60, 90, 120);
+  scene.add(key);
+  var fill = new THREE.DirectionalLight(0xffffff, 0.35);
+  fill.position.set(80, -40, 60);
+  scene.add(fill);
+  var rim = new THREE.DirectionalLight(0xffe9cf, 0.4);
+  rim.position.set(30, 60, -100);
+  scene.add(rim);
+
+  var shape = new THREE.Shape();
+  SHAPE_PTS.forEach(function(p, i){
+    if(i === 0) shape.moveTo(p[0], p[1]);
+    else shape.lineTo(p[0], p[1]);
+  });
+  shape.closePath();
+
+  var box = { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity };
+  SHAPE_PTS.forEach(function(p){
+    box.minX = Math.min(box.minX, p[0]); box.maxX = Math.max(box.maxX, p[0]);
+    box.minY = Math.min(box.minY, p[1]); box.maxY = Math.max(box.maxY, p[1]);
+  });
+  var bw = box.maxX - box.minX, bh = box.maxY - box.minY;
+
+  var DEPTH = 20;
+  var geo = new THREE.ExtrudeGeometry(shape, {
+    depth: DEPTH, bevelEnabled: true, bevelThickness: 2.2, bevelSize: 1.8, bevelSegments: 4, curveSegments: 2
+  });
+
+  var uv = geo.attributes.uv;
+  var pos = geo.attributes.position;
+  for(var i = 0; i < uv.count; i++){
+    var x = pos.getX(i), y = pos.getY(i);
+    uv.setXY(i, (x - box.minX) / bw, (y - box.minY) / bh);
+  }
+  uv.needsUpdate = true;
+
+  var flowCanvas = document.createElement('canvas');
+  var FW = 384, FH = Math.round(FW * (bh/bw));
+  flowCanvas.width = FW; flowCanvas.height = FH;
+  var fctx = flowCanvas.getContext('2d');
+  var flowTexture = new THREE.CanvasTexture(flowCanvas);
+  flowTexture.encoding = THREE.sRGBEncoding;
+  flowTexture.wrapS = THREE.ClampToEdgeWrapping;
+  flowTexture.wrapT = THREE.ClampToEdgeWrapping;
+
+  var srcImg = new Image();
+  var srcCanvas = document.createElement('canvas');
+  var srcCtx, srcData, SW, SH;
+  var ready = false;
+  srcImg.crossOrigin = 'anonymous';
+  srcImg.onload = function(){
+    SW = srcImg.width; SH = srcImg.height;
+    srcCanvas.width = SW; srcCanvas.height = SH;
+    srcCtx = srcCanvas.getContext('2d');
+    srcCtx.drawImage(srcImg, 0, 0);
+    srcData = srcCtx.getImageData(0, 0, SW, SH).data;
+    ready = true;
+  };
+  srcImg.src = 'images/s-flow-source.jpg';
+
+  var destImageData = fctx.createImageData(FW, FH);
+  function updateFlowTexture(t){
+    if(!ready) return;
+    var d = destImageData.data;
+    var amp = Math.min(SW, SH) * 0.03;
+    for(var y = 0; y < FH; y++){
+      var v = y / FH;
+      for(var x = 0; x < FW; x++){
+        var u = x / FW;
+        var fx = 2*Math.PI*u, fy = 2*Math.PI*v;
+        var dx = amp * (Math.sin(fy*2.3 + t*2*Math.PI) + 0.5*Math.sin(fx*1.3 - t*2*Math.PI*0.7));
+        var dy = amp * (Math.cos(fx*2.1 - t*2*Math.PI*0.8) + 0.5*Math.cos(fy*1.7 + t*2*Math.PI*0.6));
+        var sx = Math.max(0, Math.min(SW-1, Math.round(u*SW + dx)));
+        var sy = Math.max(0, Math.min(SH-1, Math.round(v*SH + dy)));
+        var si = (sy*SW + sx) * 4;
+        var di = (y*FW + x) * 4;
+        d[di] = srcData[si]; d[di+1] = srcData[si+1]; d[di+2] = srcData[si+2]; d[di+3] = 255;
+      }
+    }
+    fctx.putImageData(destImageData, 0, 0);
+    flowTexture.needsUpdate = true;
+  }
+
+  var frontMat = new THREE.MeshStandardMaterial({ map: flowTexture, roughness: 0.35, metalness: 0.08 });
+  var sideMat = new THREE.MeshStandardMaterial({ color: 0xf4f2ee, roughness: 0.45, metalness: 0.05 });
+
+  var mesh = new THREE.Mesh(geo, [frontMat, sideMat]);
+  var group = new THREE.Group();
+  group.add(mesh);
+  mesh.position.set(0, 0, -DEPTH/2);
+  scene.add(group);
+
+  group.scale.set(1.55, 1.55, 1.55);
+
+  var dragging = false, lastPX = 0, lastPY = 0;
+  var dragRotY = 0, dragRotX = 0;
+  var curRotY = 0, curRotX = 0.15;
+  var restT = 0;
+
+  function onDown(e){
+    dragging = true;
+    lastPX = e.clientX; lastPY = e.clientY;
+  }
+  function onMove(e){
+    if(!dragging) return;
+    var dx = e.clientX - lastPX, dy = e.clientY - lastPY;
+    lastPX = e.clientX; lastPY = e.clientY;
+    dragRotY += dx * 0.012;
+    dragRotX += dy * 0.012;
+    dragRotX = Math.max(-0.6, Math.min(0.6, dragRotX));
+  }
+  function onUp(){ dragging = false; }
+
+  canvas.addEventListener('pointerdown', onDown);
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+
+  window.addEventListener('resize', function(){
+    camera.aspect = innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+
+  var frameCount = 0;
+  var flowT = 0;
+  function animate(){
+    requestAnimationFrame(animate);
+    frameCount++;
+
+    var targetRotY, targetRotX;
+    if(dragging){
+      targetRotY = dragRotY;
+      targetRotX = 0.15 + dragRotX;
+    } else {
+      restT += 0.004;
+      targetRotY = dragRotY + Math.sin(restT) * 0.3;
+      targetRotX = 0.15 + Math.sin(restT*0.7) * 0.08;
+    }
+    curRotY += (targetRotY - curRotY) * 0.07;
+    curRotX += (targetRotX - curRotX) * 0.07;
+    group.rotation.y = curRotY;
+    group.rotation.x = curRotX;
+
+    if(frameCount % 3 === 0){
+      flowT += 0.0018;
+      updateFlowTexture(flowT % 1);
+    }
+
+    renderer.render(scene, camera);
+  }
+  animate();
+})();
+</script>
+</body>
+</html>
