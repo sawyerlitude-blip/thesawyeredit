@@ -28,6 +28,10 @@ section{position:relative;padding:0 6vw;z-index:2;}
 body.scroll-locked{overflow-y:hidden;height:100vh;overscroll-behavior-y:none;}
 
 #petalCanvas{position:fixed;inset:0;z-index:1;pointer-events:none;}
+/* mobile only: the butterfly swarm sits behind everything already, but on
+   small screens there's less breathing room around body copy, so the
+   moving shapes still read as a distraction while reading - hide there */
+@media (max-width:760px){ #petalCanvas{display:none;} }
 
 /* custom cursor - Unseen-style circle that grows on hover */
 .cursor{
@@ -223,17 +227,35 @@ nav{
 .project-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,260px));gap:22px;margin-top:16px;justify-content:center;}
 .project-card{
   position:relative;aspect-ratio:3/4;border-radius:16px;overflow:hidden;cursor:none;
-  background:var(--card);border:1px solid var(--line);display:block;
+  background:linear-gradient(155deg,#1b1815,#100e0c);border:1px solid var(--line);display:block;
+  transition:transform .45s var(--ease-out);
 }
-.project-card svg.wavy-defs{position:absolute;width:0;height:0;}
-.project-card img{
-  width:100%;height:100%;object-fit:cover;display:block;
-  transition:transform 1.1s var(--ease-out);
-  transform:scale(1.06);
-  will-change:filter,transform;
-  backface-visibility:hidden;
+.project-card:hover{transform:translateY(-4px);}
+/* client mark sits on its own dark panel instead of a stretched cover photo -
+   real logos (or, for the multi-venue pub card, a typographic mark), centred
+   and left undistorted, with the same dark bottom overlay for the info panel */
+.project-card-logo{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  padding:14% 12% 30%;
 }
-.project-card:hover img{transform:scale(1.14);}
+.project-card-logo img{
+  max-width:100%;max-height:100%;object-fit:contain;display:block;
+  filter:drop-shadow(0 6px 18px rgba(0,0,0,.45));
+  transition:transform .5s var(--ease-out);
+}
+.project-card:hover .project-card-logo img{transform:scale(1.07);}
+.project-card-wordmark{
+  display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;
+  transition:transform .5s var(--ease-out);
+}
+.project-card:hover .project-card-wordmark{transform:scale(1.05);}
+.project-card-wordmark span{
+  font-family:'Playfair Display',serif;font-style:italic;color:#f5f4f2;
+  font-size:1.02rem;line-height:1.3;
+}
+.project-card-wordmark small{
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);
+}
 .project-card::after{
   content:'';position:absolute;inset:0;background:linear-gradient(to top, rgba(10,9,8,.94) 0%, rgba(10,9,8,.35) 45%, transparent 75%);
   pointer-events:none;

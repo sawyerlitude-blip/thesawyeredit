@@ -70,8 +70,7 @@
   <div class="project-grid">
 
     <div class="project-card" tabindex="0" role="button" aria-label="Open AMANO Group video gallery" data-idx="0" data-project="amano" data-type="video">
-      <svg class="wavy-defs"><filter id="wavy0"><feTurbulence type="fractalNoise" baseFrequency="0.0001" numOctaves="2" seed="3" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="0"/></filter></svg>
-      <img src="https://thesawyeredit.com/photos/amano/amano-p1.jpg" alt="AMANO Group" style="filter:url(#wavy0)">
+      <div class="project-card-logo"><img src="assets/logos/amano-logo.svg" alt="AMANO Group logo"></div>
       <div class="project-card-content">
         <span class="project-card-tag">● Active · Hotel Chain · Covent Garden</span>
         <div class="project-card-name">AMANO Group</div>
@@ -90,8 +89,7 @@
     </div>
 
     <div class="project-card" tabindex="0" role="button" aria-label="Open Aubaine video gallery" data-idx="1" data-project="aubaine" data-type="video">
-      <svg class="wavy-defs"><filter id="wavy1"><feTurbulence type="fractalNoise" baseFrequency="0.0001" numOctaves="2" seed="7" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="0"/></filter></svg>
-      <img src="https://thesawyeredit.com/photos/aubaine/aubaine-p1.jpg" alt="Aubaine" style="filter:url(#wavy1)">
+      <div class="project-card-logo"><img src="assets/logos/aubaine-logo.png" alt="Aubaine logo"></div>
       <div class="project-card-content">
         <span class="project-card-tag">Restaurant Chain · Multi-site</span>
         <div class="project-card-name">Aubaine</div>
@@ -110,8 +108,14 @@
     </div>
 
     <div class="project-card" tabindex="0" role="button" aria-label="Open London Pub Portfolio video gallery" data-idx="2" data-project="pubs" data-type="video">
-      <svg class="wavy-defs"><filter id="wavy2"><feTurbulence type="fractalNoise" baseFrequency="0.0001" numOctaves="2" seed="12" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="0"/></filter></svg>
-      <img src="https://thesawyeredit.com/photos/pubs/pubs-p1.jpg" alt="London Pub Portfolio" style="filter:url(#wavy2)">
+      <div class="project-card-logo">
+        <div class="project-card-wordmark">
+          <small>London Pub Portfolio</small>
+          <span>The Rising Sun</span>
+          <span>The Brunel</span>
+          <span>The Garratt Tavern</span>
+        </div>
+      </div>
       <div class="project-card-content">
         <span class="project-card-tag">Pub Group · Belgravia · Rotherhithe · Wandsworth</span>
         <div class="project-card-name">London Pub Portfolio</div>
@@ -357,32 +361,6 @@
   document.getElementById('photoModalOverlay').addEventListener('click', e=>{ if(e.target.id === 'photoModalOverlay') closePhotoModal(); });
   document.addEventListener('keydown', e=>{ if(e.key === 'Escape'){ closeModal(); closePhotoModal(); } });
 
-  // wavy ripple hover effect on project cards
-  document.querySelectorAll('.project-card').forEach((card, i)=>{
-    const filterEl = document.querySelector('#wavy' + i);
-    const turb = filterEl.querySelector('feTurbulence');
-    const disp = filterEl.querySelector('feDisplacementMap');
-    let t = i * 10, hovering = false;
-    let curScale = 0, curFreq = 0;
-    let lastTime = performance.now();
-    function animate(now){
-      requestAnimationFrame(animate);
-      const dt = Math.min((now - lastTime) / 16.6667, 3);
-      lastTime = now;
-      t += (hovering ? 0.045 : 0.02) * dt;
-      const targetScale = hovering ? 12 : 0;
-      const targetFreq = hovering ? 0.009 : 0;
-      const ease = 1 - Math.pow(1 - 0.09, dt);
-      curScale += (targetScale - curScale) * ease;
-      curFreq += (targetFreq - curFreq) * ease;
-      disp.setAttribute('scale', curScale.toFixed(2));
-      turb.setAttribute('baseFrequency', curFreq.toFixed(4));
-      turb.setAttribute('seed', (3 + i * 4 + Math.sin(t) * 2).toFixed(1));
-    }
-    requestAnimationFrame(animate);
-    card.addEventListener('mouseenter', ()=>{ hovering = true; });
-    card.addEventListener('mouseleave', ()=>{ hovering = false; });
-  });
 </script>
 </body>
 </html>
