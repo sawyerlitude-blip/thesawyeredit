@@ -27,11 +27,11 @@ section{position:relative;padding:0 6vw;z-index:2;}
 /* landing-only scroll lock - matches unseen.co's body:not(.is-touch){overflow-y:hidden} */
 body.scroll-locked{overflow-y:hidden;height:100vh;overscroll-behavior-y:none;}
 
+/* fixed, full-screen, and z-index:1 - strictly behind every content section
+   (which are all z-index:2, see below), on every screen size including
+   mobile, so the swarm can never sit on top of or obscure text while
+   scrolling */
 #petalCanvas{position:fixed;inset:0;z-index:1;pointer-events:none;}
-/* mobile only: the butterfly swarm sits behind everything already, but on
-   small screens there's less breathing room around body copy, so the
-   moving shapes still read as a distraction while reading - hide there */
-@media (max-width:760px){ #petalCanvas{display:none;} }
 
 /* custom cursor - Unseen-style circle that grows on hover */
 .cursor{
