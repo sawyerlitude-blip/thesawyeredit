@@ -254,9 +254,9 @@
   // lift it, click a tile to open that client via openClient() above. ----
   (function(){
     const CLIENTS = [
-      { id:'amano',   name:'AMANO Group',          photo:'https://thesawyeredit.com/photos/amano/amano-p1.jpg' },
-      { id:'aubaine', name:'Aubaine',               photo:'https://thesawyeredit.com/photos/aubaine/aubaine-p1.jpg' },
-      { id:'pubs',    name:'London Pub Portfolio',  photo:'https://thesawyeredit.com/photos/pubs/pubs-p1.jpg' },
+      { id:'amano',   name:'AMANO Group',          photo:'https://thesawyeredit.com/images/clients/amano-badge.jpg' },
+      { id:'aubaine', name:'Aubaine',               photo:'https://thesawyeredit.com/images/clients/aubaine-badge.jpg' },
+      { id:'pubs',    name:'London Pub Portfolio',  photo:'https://thesawyeredit.com/images/clients/pubs-badge.jpg' },
     ];
 
     const canvas = document.getElementById('worldCanvas');
@@ -289,8 +289,10 @@
     CLIENTS.forEach((c, i)=>{
       const angle = (i / CLIENTS.length) * Math.PI * 2;
       const radius = 3.4;
-      const geo = new THREE.PlaneGeometry(1.5, 1.5);
-      const mat = new THREE.MeshBasicMaterial({ color:0x222222, transparent:true, opacity:.98 });
+      // circular badge tiles (client logos are square black-background images;
+      // a circle geometry crops them to a clean disc instead of a square card)
+      const geo = new THREE.CircleGeometry(0.82, 48);
+      const mat = new THREE.MeshBasicMaterial({ color:0x0a0908, transparent:true, opacity:.98 });
       const mesh = new THREE.Mesh(geo, mat);
       mesh.position.set(Math.cos(angle)*radius, Math.sin(angle*0.6)*0.6, Math.sin(angle)*radius);
       mesh.userData = { clientId:c.id, name:c.name, baseScale:1 };
