@@ -41,10 +41,10 @@
 <div class="cursor" id="cursor"></div>
 
 <nav>
-  <div class="mark">
+  <a href="index.html" class="mark" data-transition data-label="Loading Home —">
     <div class="mark-badge">S</div>
     <div class="mark-text">THE SAWYER EDIT</div>
-  </div>
+  </a>
   <button class="menu-btn" id="menuOpenBtn">
     Menu
     <span class="dot"><span></span></span>
@@ -100,6 +100,15 @@
 </section>
 
 <script src="assets/app.js"></script>
+<script>
+  // "View my work" gets a subtle scroll-down exit motion (content drifts up
+  // & fades) that plays alongside the wipe cover, so leaving the hero feels
+  // like scrolling into the site rather than a flat cut. work.html itself
+  // still opens at its normal top position.
+  document.getElementById('viewWorkBtn')?.addEventListener('click', ()=>{
+    document.body.classList.add('scroll-exit');
+  });
+</script>
 <script>
   // S monogram drag-to-tilt
   (function(){
