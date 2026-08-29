@@ -24,7 +24,7 @@
   var scene = new THREE.Scene();
   var canvas = document.getElementById('c');
   var camera = new THREE.PerspectiveCamera(38, innerWidth/innerHeight, 0.1, 1000);
-  camera.position.set(0, 0, 210);
+  camera.position.set(0, 0, 260);
 
   var renderer = new THREE.WebGLRenderer({canvas: canvas, antialias:true, alpha:true});
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -125,7 +125,7 @@
   mesh.position.set(0, 0, -DEPTH/2);
   scene.add(group);
 
-  group.scale.set(1.55, 1.55, 1.55);
+  group.scale.set(1.05, 1.05, 1.05);
 
   var dragging = false, lastPX = 0, lastPY = 0;
   var dragRotY = 0, dragRotX = 0;
