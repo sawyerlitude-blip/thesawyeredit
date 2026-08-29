@@ -259,17 +259,22 @@
       { id:'pubs',    name:'London Pub Portfolio',  photo:'https://thesawyeredit.com/images/clients/pubs-badge.jpg' },
     ];
 
+    // lighter settings on phones - lower pixel ratio and no antialiasing -
+    // trade a little visual crispness for a meaningfully steadier frame
+    // rate, which matters more for a scene you're meant to drag around
+    const isSmallScreen = innerWidth < 760;
+
     const canvas = document.getElementById('worldCanvas');
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.1, 100);
     camera.position.z = 7.5;
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias:!isSmallScreen, alpha:true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, isSmallScreen ? 1.5 : 2));
     renderer.setSize(innerWidth, innerHeight);
 
-    // faint wireframe sphere - the "world" grid
+    // faint wireframe sphere - the "world" grid (fewer segments on phones)
     const wireMat = new THREE.MeshBasicMaterial({ color:0xe0a045, wireframe:true, transparent:true, opacity:.12 });
-    scene.add(new THREE.Mesh(new THREE.SphereGeometry(3.1, 22, 14), wireMat));
+    scene.add(new THREE.Mesh(new THREE.SphereGeometry(3.1, isSmallScreen ? 16 : 22, isSmallScreen ? 10 : 14), wireMat));
 
     const group = new THREE.Group();
     scene.add(group);

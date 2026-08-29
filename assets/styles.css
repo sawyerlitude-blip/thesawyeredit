@@ -15,6 +15,20 @@ html{background:var(--bg);scroll-behavior:smooth;}
 body{
   background:var(--bg);color:var(--fg);font-family:'Space Grotesk',sans-serif;
   overflow-x:hidden;cursor:none;
+  /* soft halo, in the page's own background colour, behind every piece of
+     text - text-shadow inherits, so this reaches every heading/paragraph
+     sitting on the plain page background without touching each one by
+     hand. It keeps text crisp and readable even when the butterfly swarm
+     (which sits just behind all content) happens to drift under a letter. */
+  text-shadow:0 0 2px var(--bg),0 0 2px var(--bg),0 0 7px var(--bg),0 0 7px var(--bg);
+}
+/* dark panels (video/photo modals, the client project cards) are fully
+   opaque - the canvas is already hidden behind them, so the cream halo
+   would just look like an odd glow around light text. Switched back off. */
+.modal, .modal *,
+.project-card, .project-card *,
+.video-slot, .cursor-label{
+  text-shadow:none;
 }
 h1,h2,h3{font-family:'Space Grotesk',sans-serif;}
 a{color:inherit;text-decoration:none;}
@@ -25,7 +39,7 @@ a{color:inherit;text-decoration:none;}
 section{position:relative;padding:0 6vw;z-index:2;}
 
 /* landing-only scroll lock - matches unseen.co's body:not(.is-touch){overflow-y:hidden} */
-body.scroll-locked{overflow-y:hidden;height:100vh;overscroll-behavior-y:none;}
+body.scroll-locked{overflow-y:hidden;height:100vh;height:100svh;overscroll-behavior-y:none;}
 
 /* fixed, full-screen, and z-index:1 - strictly behind every content section
    (which are all z-index:2, see below), on every screen size including
@@ -153,7 +167,7 @@ nav{
 
 /* ============ HERO (home page only) ============ */
 .hero{
-  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;
   position:relative;text-align:center;overflow:hidden;
   /* reserves room for the fixed, bottom-pinned .hero-marquee bar so the
      centred content above it (in particular the CTA button) never lands
@@ -196,6 +210,13 @@ nav{
   filter:drop-shadow(0 -2px 0 rgba(255,255,255,.10)) drop-shadow(0 3px 2px rgba(0,0,0,.35))
     drop-shadow(0 22px 38px rgba(0,0,0,.55)) drop-shadow(0 0 44px rgba(230,90,140,.18)) contrast(1.06) saturate(1.05);
   transform-style:preserve-3d;will-change:transform;}
+/* this element rotates every single frame (idle wobble, even when nobody's
+   touching it), so its filter gets recomputed continuously - four stacked
+   drop-shadows is fine on desktop GPUs but noticeably heavy on phones.
+   Mobile gets one cheaper shadow instead, for a smoother constant frame rate. */
+@media (max-width:860px){
+  .hero-s-face{filter:drop-shadow(0 14px 24px rgba(0,0,0,.45)) saturate(1.05);}
+}
 .hero-s-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;user-select:none;display:block;}
 .hero-s-sheen{position:absolute;inset:0;pointer-events:none;
   -webkit-mask-image:url('https://thesawyeredit.com/images/s-original.png');mask-image:url('https://thesawyeredit.com/images/s-original.png');
@@ -237,8 +258,11 @@ nav{
    as every other content <section> on the site - without it, the fixed
    ambient butterfly canvas (z-index:1) was painting on top of the 3D scene
    and client tiles inside here instead of staying strictly behind them */
-.world-hero{position:relative;height:100vh;overflow:hidden;z-index:2;}
-#worldCanvas{position:absolute;inset:0;z-index:0;}
+.world-hero{position:relative;height:100vh;height:100svh;overflow:hidden;z-index:2;}
+/* touch-action:none stops mobile browsers treating a drag-to-spin gesture
+   here as a page-scroll attempt, which is what made rotating the scene feel
+   sticky/fighty on phones */
+#worldCanvas{position:absolute;inset:0;z-index:0;touch-action:none;}
 .world-scene-hint{
   position:absolute;bottom:30px;left:0;right:0;z-index:2;text-align:center;pointer-events:none;
   font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;

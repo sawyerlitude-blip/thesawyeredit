@@ -17,7 +17,10 @@
     cursor.style.top = e.clientY + 'px';
   });
 
-  const LABELS = [['.mark', 'Home'], ['.menu-btn', 'Menu'], ['.menu-close', 'Close'], ['.pill-btn', 'View']];
+  // CTA pill buttons already have their own hover animation (the label
+  // slides up into a filled colour), so they keep the plain growing-circle
+  // cursor instead of a competing text pill - just logo/menu get one.
+  const LABELS = [['.mark', 'Home'], ['.menu-btn', 'Menu'], ['.menu-close', 'Close']];
   const labelled = new Set();
   LABELS.forEach(([sel, text])=>{
     document.querySelectorAll(sel).forEach(el=>{
@@ -100,7 +103,9 @@
 
   let w, h, dpr;
   function resize(){
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // capping the pixel ratio lower on phones trades a touch of sharpness
+    // for meaningfully less canvas fill-rate to push every frame
+    dpr = Math.min(window.devicePixelRatio || 1, window.innerWidth < 760 ? 1.5 : 2);
     w = window.innerWidth; h = window.innerHeight;
     canvas.width = w * dpr; canvas.height = h * dpr;
     canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
@@ -119,7 +124,13 @@
   });
   window.addEventListener('pointerleave', ()=>{ mouseOnPage = false; });
 
-  const COUNT = window.innerWidth < 760 ? 110 : 220;
+  // phones get fewer sprites, and skip the per-sprite hue/brightness canvas
+  // filter entirely below - ctx.filter is CPU-bound (not GPU-accelerated) in
+  // most mobile browsers, and re-applying a different filter per sprite per
+  // frame for a hundred-plus sprites was the single biggest source of jank
+  // on phones. Desktop keeps the full, richer effect.
+  const isSmallScreen = window.innerWidth < 760;
+  const COUNT = isSmallScreen ? 70 : 220;
   const petals = [];
   const aspect = 369/324; // butterfly sprite's own width/height ratio
   for(let i=0;i<COUNT;i++){
@@ -149,7 +160,7 @@
     ctx.rotate(p.heading);
     ctx.scale(1, wingScale);
     ctx.globalAlpha = Math.min(1, 0.5 * p.depth + 0.35);
-    ctx.filter = p.filterStr;
+    if(!isSmallScreen) ctx.filter = p.filterStr;
     const hgt = p.size * 2;
     const wid = hgt * aspect;
     ctx.drawImage(butterflyImg, -wid/2, -hgt/2, wid, hgt);
