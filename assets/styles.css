@@ -198,20 +198,33 @@ nav{
   .hero-a-title{font-size:clamp(1.5rem,7vw,2.2rem);}
 }
 
-/* ============ S WORLD (Work page) - a true 3D scene (Three.js) sits fixed
-   behind the whole page: a faint wireframe sphere, the S monogram at the
-   core, and three client tiles (AMANO/Aubaine/Pub Portfolio) orbiting it.
-   Drag anywhere to spin it, same idle-wander/inertia feel as the Home
-   hero's S. It's z-index:1 (same layer as the butterfly canvas, painted
-   after it so it sits above the swarm) - still strictly behind every real
-   content section, which are all z-index:2. Clicking a tile reveals that
+/* ============ S WORLD (Work page) - a true 3D scene (Three.js), confined to
+   a single full-viewport hero block (.world-hero) at the top of the page -
+   a faint wireframe sphere, the S monogram at the core, and three client
+   tiles (AMANO/Aubaine/Pub Portfolio) orbiting it. Drag anywhere in the hero
+   to spin it, same idle-wander/inertia feel as the Home hero's S. Keeping
+   the scene inside a fixed-height, overflow:hidden container (rather than
+   position:fixed on the canvas itself) means it scrolls away naturally once
+   you pass the hero, instead of staying pinned behind every section on the
+   page and bleeding through their empty space. Clicking a tile reveals that
    client's full project card via .client-reveal-overlay below. */
-#worldCanvas{position:fixed;inset:0;z-index:1;}
+.world-hero{position:relative;height:100vh;overflow:hidden;}
+#worldCanvas{position:absolute;inset:0;z-index:0;}
 .world-scene-hint{
-  position:fixed;bottom:30px;left:0;right:0;z-index:2;text-align:center;pointer-events:none;
+  position:absolute;bottom:30px;left:0;right:0;z-index:2;text-align:center;pointer-events:none;
   font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;
   color:var(--muted);opacity:.75;
 }
+/* floating name tag that follows whichever client tile is hovered, so it's
+   obvious which client each tile represents before you click it */
+.world-tile-label{
+  position:fixed;z-index:5;pointer-events:none;transform:translate(-50%,-150%);
+  font-family:var(--mono);font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;
+  color:#f5f4f2;background:rgba(10,9,8,.8);padding:7px 14px;border-radius:999px;
+  border:1px solid rgba(224,160,69,.55);white-space:nowrap;opacity:0;
+  transition:opacity .2s ease;
+}
+.world-tile-label.show{opacity:1;}
 
 .client-reveal-overlay{
   position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;
@@ -251,6 +264,9 @@ nav{
 .page-head{
   display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:20px;
   padding:150px 0 50px;border-bottom:1px solid var(--line);
+  /* text-only (no links/buttons inside on any page) - stays click-through so
+     it never steals drag/click gestures meant for the 3D scene behind it */
+  pointer-events:none;
 }
 .page-head h1{font-family:'Space Grotesk',sans-serif;font-weight:700;text-transform:uppercase;
   font-size:clamp(2rem,5vw,3.4rem);line-height:.95;}

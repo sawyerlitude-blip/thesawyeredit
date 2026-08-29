@@ -22,8 +22,8 @@
 <body>
 
 <canvas id="petalCanvas"></canvas>
-<canvas id="worldCanvas"></canvas>
 <div class="cursor" id="cursor"></div>
+<div class="world-tile-label" id="worldTileLabel"></div>
 
 <nav>
   <a href="index.html" class="mark" data-transition data-label="Loading Home —">
@@ -61,14 +61,16 @@
   <span>Available for new projects</span>
 </div>
 
-<section class="page-head" id="work">
-  <div>
-    <h1>S <em>World</em></h1>
-  </div>
-  <p>Drag to explore, then click a client to see the work — photos, videos and the full story.</p>
-</section>
-
-<div class="world-scene-hint">Drag to explore · click a client</div>
+<div class="world-hero">
+  <canvas id="worldCanvas"></canvas>
+  <section class="page-head" id="work">
+    <div>
+      <h1>S <em>World</em></h1>
+    </div>
+    <p>Drag to explore, then click a client to see the work — photos, videos and the full story.</p>
+  </section>
+  <div class="world-scene-hint">Drag to explore · click a client</div>
+</div>
 
 <!-- reveal overlay - the exact same project cards (tag, dates, description,
      result, Photos/Videos buttons wired to the real modals below, and work
@@ -291,7 +293,7 @@
       const mat = new THREE.MeshBasicMaterial({ color:0x222222, transparent:true, opacity:.98 });
       const mesh = new THREE.Mesh(geo, mat);
       mesh.position.set(Math.cos(angle)*radius, Math.sin(angle*0.6)*0.6, Math.sin(angle)*radius);
-      mesh.userData = { clientId:c.id, baseScale:1 };
+      mesh.userData = { clientId:c.id, name:c.name, baseScale:1 };
       group.add(mesh);
       tiles.push(mesh);
       loader.load(c.photo, tex=>{ mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; });
@@ -309,6 +311,8 @@
     const mouseNDC = new THREE.Vector2(-10,-10);
     let hovered = null;
     const cursorEl = document.getElementById('cursor');
+    const tileLabel = document.getElementById('worldTileLabel');
+    const labelPos = new THREE.Vector3();
 
     canvas.addEventListener('pointerdown', e=>{ dragging = true; prevX = e.clientX; prevY = e.clientY; });
     addEventListener('pointermove', e=>{
@@ -347,6 +351,22 @@
       } else if(!hit && hovered){
         hovered.scale.set(1,1,1); hovered = null;
         if(cursorEl) cursorEl.classList.remove('grow');
+      }
+      // keep the floating name tag pinned above whichever tile is hovered,
+      // so it's always clear which client each tile represents before you click
+      if(tileLabel){
+        if(hovered){
+          hovered.getWorldPosition(labelPos);
+          labelPos.project(camera);
+          const px = (labelPos.x * 0.5 + 0.5) * innerWidth;
+          const py = (-labelPos.y * 0.5 + 0.5) * innerHeight;
+          tileLabel.textContent = hovered.userData.name || '';
+          tileLabel.style.left = px + 'px';
+          tileLabel.style.top = py + 'px';
+          tileLabel.classList.add('show');
+        } else {
+          tileLabel.classList.remove('show');
+        }
       }
       sSprite.lookAt(camera.position);
       renderer.render(scene, camera);
