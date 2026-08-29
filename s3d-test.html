@@ -70,7 +70,7 @@
   uv.needsUpdate = true;
 
   var flowCanvas = document.createElement('canvas');
-  var FW = 384, FH = Math.round(FW * (bh/bw));
+  var FW = 420, FH = Math.round(FW * (bh/bw));
   flowCanvas.width = FW; flowCanvas.height = FH;
   var fctx = flowCanvas.getContext('2d');
   var flowTexture = new THREE.CanvasTexture(flowCanvas);
@@ -78,45 +78,67 @@
   flowTexture.wrapS = THREE.ClampToEdgeWrapping;
   flowTexture.wrapT = THREE.ClampToEdgeWrapping;
 
-  var srcImg = new Image();
-  var srcCanvas = document.createElement('canvas');
-  var srcCtx, srcData, SW, SH;
-  var ready = false;
-  srcImg.crossOrigin = 'anonymous';
-  srcImg.onload = function(){
-    SW = srcImg.width; SH = srcImg.height;
-    srcCanvas.width = SW; srcCanvas.height = SH;
-    srcCtx = srcCanvas.getContext('2d');
-    srcCtx.drawImage(srcImg, 0, 0);
-    srcData = srcCtx.getImageData(0, 0, SW, SH).data;
-    ready = true;
-  };
-  srcImg.src = 'images/s-flow-source.jpg';
+  var bgImg = new Image();
+  var butterflyImg = new Image();
+  var bgReady = false, flyReady = false;
+  bgImg.onload = function(){ bgReady = true; };
+  bgImg.src = 'images/s-universe-bg.jpg';
+  butterflyImg.onload = function(){ flyReady = true; };
+  butterflyImg.src = 'assets/butterfly.png';
 
-  var destImageData = fctx.createImageData(FW, FH);
+  var flyAspect = 369/324;
+  var butterflies = [];
+  for(var bi = 0; bi < 4; bi++){
+    butterflies.push({
+      ax: 0.16 + Math.random()*0.08,
+      ay: 0.14 + Math.random()*0.08,
+      cx: 0.32 + Math.random()*0.36,
+      cy: 0.32 + Math.random()*0.36,
+      speed: 0.16 + Math.random()*0.1,
+      phase: Math.random()*Math.PI*2,
+      phase2: Math.random()*Math.PI*2,
+      size: 34 + Math.random()*16,
+      flap: Math.random()*Math.PI*2,
+      flapSpeed: 0.09 + Math.random()*0.05
+    });
+  }
+
   function updateFlowTexture(t){
-    if(!ready) return;
-    var d = destImageData.data;
-    var amp = Math.min(SW, SH) * 0.03;
-    for(var y = 0; y < FH; y++){
-      var v = y / FH;
-      for(var x = 0; x < FW; x++){
-        var u = x / FW;
-        var fx = 2*Math.PI*u, fy = 2*Math.PI*v;
-        var dx = amp * (Math.sin(fy*2.3 + t*2*Math.PI) + 0.5*Math.sin(fx*1.3 - t*2*Math.PI*0.7));
-        var dy = amp * (Math.cos(fx*2.1 - t*2*Math.PI*0.8) + 0.5*Math.cos(fy*1.7 + t*2*Math.PI*0.6));
-        var sx = Math.max(0, Math.min(SW-1, Math.round(u*SW + dx)));
-        var sy = Math.max(0, Math.min(SH-1, Math.round(v*SH + dy)));
-        var si = (sy*SW + sx) * 4;
-        var di = (y*FW + x) * 4;
-        d[di] = srcData[si]; d[di+1] = srcData[si+1]; d[di+2] = srcData[si+2]; d[di+3] = 255;
-      }
+    if(!bgReady) return;
+    var bw2 = bgImg.width, bh2 = bgImg.height;
+    var scale = Math.max(FW/bw2, FH/bh2);
+    var dw = bw2*scale, dh = bh2*scale;
+    fctx.drawImage(bgImg, (FW-dw)/2, (FH-dh)/2, dw, dh);
+
+    if(flyReady){
+      butterflies.forEach(function(b){
+        var ang = t * Math.PI * 2 * b.speed + b.phase;
+        var u = b.cx + Math.sin(ang) * b.ax;
+        var v = b.cy + Math.sin(ang * 2 + b.phase2) * b.ay * 0.6;
+        var uPrev = b.cx + Math.sin(ang - 0.02) * b.ax;
+        var vPrev = b.cy + Math.sin((ang - 0.02) * 2 + b.phase2) * b.ay * 0.6;
+        var heading = Math.atan2((v - vPrev), (u - uPrev));
+        b.flap += b.flapSpeed;
+        var wingScale = 0.55 + Math.abs(Math.sin(b.flap)) * 0.5;
+
+        var px = u * FW, py = v * FH;
+        var hgt = b.size, wid = hgt * flyAspect;
+        fctx.save();
+        fctx.translate(px, py);
+        fctx.rotate(heading + Math.PI/2);
+        fctx.scale(1, wingScale);
+        fctx.globalAlpha = 0.92;
+        fctx.shadowColor = 'rgba(255,255,255,0.35)';
+        fctx.shadowBlur = 6;
+        fctx.drawImage(butterflyImg, -wid/2, -hgt/2, wid, hgt);
+        fctx.restore();
+      });
     }
-    fctx.putImageData(destImageData, 0, 0);
+
     flowTexture.needsUpdate = true;
   }
 
-  var frontMat = new THREE.MeshStandardMaterial({ map: flowTexture, roughness: 0.35, metalness: 0.08 });
+  var frontMat = new THREE.MeshStandardMaterial({ map: flowTexture, roughness: 0.45, metalness: 0.05, emissive: 0x0a0818, emissiveIntensity: 0.25 });
   var sideMat = new THREE.MeshStandardMaterial({ color: 0xf4f2ee, roughness: 0.45, metalness: 0.05 });
 
   var mesh = new THREE.Mesh(geo, [frontMat, sideMat]);
@@ -176,10 +198,8 @@
     group.rotation.y = curRotY;
     group.rotation.x = curRotX;
 
-    if(frameCount % 3 === 0){
-      flowT += 0.0018;
-      updateFlowTexture(flowT % 1);
-    }
+    flowT += 0.0035;
+    updateFlowTexture(flowT);
 
     renderer.render(scene, camera);
   }
