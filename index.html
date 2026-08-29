@@ -176,13 +176,13 @@
 
     const flyAspect = 369/324;
     const butterflies = [];
-    const N = isSmallScreen ? 3 : 4;
+    const N = isSmallScreen ? 6 : 9;
     for(let i = 0; i < N; i++){
       butterflies.push({
-        ax: 0.16 + Math.random()*0.08, ay: 0.14 + Math.random()*0.08,
-        cx: 0.32 + Math.random()*0.36, cy: 0.32 + Math.random()*0.36,
-        speed: 0.16 + Math.random()*0.1, phase: Math.random()*Math.PI*2, phase2: Math.random()*Math.PI*2,
-        size: (isSmallScreen ? 26 : 34) + Math.random()*16, flap: Math.random()*Math.PI*2, flapSpeed: 0.09 + Math.random()*0.05
+        ax: 0.16 + Math.random()*0.1, ay: 0.14 + Math.random()*0.1,
+        cx: 0.28 + Math.random()*0.42, cy: 0.28 + Math.random()*0.42,
+        speed: 0.5 + Math.random()*0.35, phase: Math.random()*Math.PI*2, phase2: Math.random()*Math.PI*2,
+        size: (isSmallScreen ? 24 : 32) + Math.random()*15, flap: Math.random()*Math.PI*2, flapSpeed: 0.26 + Math.random()*0.14
       });
     }
 
@@ -218,7 +218,7 @@
     }
 
     const frontMat = new THREE.MeshStandardMaterial({ map: flowTexture, roughness: 0.45, metalness: 0.05, emissive: 0x0a0818, emissiveIntensity: 0.25 });
-    const sideMat = new THREE.MeshStandardMaterial({ color: 0xf4f2ee, roughness: 0.45, metalness: 0.05 });
+    const sideMat = new THREE.MeshStandardMaterial({ map: flowTexture, color: 0xb9b6c4, roughness: 0.5, metalness: 0.05, emissive: 0x0a0818, emissiveIntensity: 0.2 });
     const mesh = new THREE.Mesh(geo, [frontMat, sideMat]);
     const group = new THREE.Group();
     group.add(mesh);
