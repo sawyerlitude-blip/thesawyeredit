@@ -33,18 +33,6 @@ body.scroll-locked{overflow-y:hidden;height:100vh;overscroll-behavior-y:none;}
    scrolling */
 #petalCanvas{position:fixed;inset:0;z-index:1;pointer-events:none;}
 
-/* "View my work" exit motion (home page only) - the hero content drifts up
-   and fades while the wipe covers the screen, so leaving reads as scrolling
-   down into the site rather than a flat cut. work.html itself still opens
-   at its own normal top position. */
-body.scroll-exit .hero-a-top,
-body.scroll-exit .hero-s-stage,
-body.scroll-exit .hero-marquee{
-  transition:transform .6s var(--ease-out), opacity .6s ease;
-  transform:translateY(-40px);
-  opacity:0;
-}
-
 /* custom cursor - Unseen-style circle that grows on hover */
 .cursor{
   position:fixed;top:0;left:0;width:26px;height:26px;border-radius:50%;
@@ -196,6 +184,26 @@ nav{
   .hero-a-eyebrow-top{font-size:.62rem;}
   .hero-a-title{font-size:clamp(1.5rem,7vw,2.2rem);}
 }
+
+/* ============ WORLD (Work page) - the S stays fixed in the background for
+   the whole page, like unseen.co/world's draggable centrepiece, while the
+   real project cards/services/approach content scrolls on top of it. It's
+   z-index:1 (same layer as the butterfly canvas, painted after it so it
+   sits above the swarm) - still strictly behind every section, which are
+   all z-index:2, so it never interferes with reading. Dragging still tilts
+   it same as the Home hero, and scrolling nudges its rotation too. */
+.world-s-stage{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1;
+  width:min(58vw,64vh);max-width:520px;aspect-ratio:1/1;
+  display:flex;align-items:center;justify-content:center;
+  perspective:1100px;cursor:none;touch-action:none;
+}
+.world-s-stage::before{
+  content:'';position:absolute;inset:-10%;z-index:-1;border-radius:50%;
+  background:radial-gradient(circle, rgba(255,120,90,.20) 0%, rgba(230,60,150,.14) 32%, rgba(70,110,230,.12) 58%, transparent 75%);
+  filter:blur(30px);
+}
+@media (max-width:760px){ .world-s-stage{width:min(74vw,60vh);} }
 
 /* venues ticker pinned inside the hero viewport, so it's visible without scrolling */
 .hero-marquee{
