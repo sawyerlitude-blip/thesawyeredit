@@ -290,25 +290,43 @@
       const angle = (i / CLIENTS.length) * Math.PI * 2;
       const radius = 3.4;
       // circular badge tiles (client logos are square black-background images;
-      // a circle geometry crops them to a clean disc instead of a square card)
-      const geo = new THREE.CircleGeometry(0.82, 48);
+      // a circle geometry crops them to a clean disc instead of a square card).
+      // Smaller radius than before, per feedback.
+      const R = 0.55;
+      const geo = new THREE.CircleGeometry(R, 48);
       const mat = new THREE.MeshBasicMaterial({ color:0x0a0908, transparent:true, opacity:.98 });
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(Math.cos(angle)*radius, Math.sin(angle*0.6)*0.6, Math.sin(angle)*radius);
-      mesh.userData = { clientId:c.id, name:c.name, baseScale:1 };
-      group.add(mesh);
-      tiles.push(mesh);
+      const pos = new THREE.Vector3(Math.cos(angle)*radius, Math.sin(angle*0.6)*0.6, Math.sin(angle)*radius);
+
+      // front-facing badge
+      const front = new THREE.Mesh(geo, mat);
+      front.position.copy(pos);
+      front.userData = { clientId:c.id, name:c.name };
+      group.add(front);
+      tiles.push(front);
+
+      // a second badge rotated 180° behind it, sharing the same material -
+      // so whichever side of the sphere is facing the camera as it spins,
+      // you still see the logo the right way round instead of it vanishing
+      // (single-sided planes are invisible from behind) or mirroring.
+      const back = new THREE.Mesh(geo, mat);
+      back.position.set(pos.x, pos.y, pos.z - 0.006);
+      back.rotation.y = Math.PI;
+      back.userData = front.userData;
+      group.add(back);
+      tiles.push(back);
+
       loader.load(c.photo, tex=>{ mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; });
 
       // thin gold rim right at the badge's edge - gives each client tile a
       // "little planet" / medallion feel instead of a flat cut-out circle
       const ring = new THREE.Mesh(
-        new THREE.RingGeometry(0.82, 0.9, 48),
+        new THREE.RingGeometry(R, R + 0.08, 48),
         new THREE.MeshBasicMaterial({ color:0xe0a045, transparent:true, opacity:.6, side:THREE.DoubleSide })
       );
-      ring.position.set(mesh.position.x, mesh.position.y, mesh.position.z - 0.01);
+      ring.position.set(pos.x, pos.y, pos.z - 0.01);
       group.add(ring);
-      mesh.userData.ring = ring;
+      front.userData.ring = ring;
+      front.userData.pair = [front, back];
     });
 
     addEventListener('resize', ()=>{
@@ -321,6 +339,7 @@
     let dragging=false, prevX=0, prevY=0, velX=0, velY=0;
     const raycaster = new THREE.Raycaster();
     const mouseNDC = new THREE.Vector2(-10,-10);
+    const parallax = new THREE.Vector2(0,0);
     let hovered = null;
     const cursorEl = document.getElementById('cursor');
     const tileLabel = document.getElementById('worldTileLabel');
@@ -330,6 +349,7 @@
     addEventListener('pointermove', e=>{
       mouseNDC.x = (e.clientX/innerWidth)*2-1;
       mouseNDC.y = -(e.clientY/innerHeight)*2+1;
+      parallax.copy(mouseNDC);
       if(dragging){
         const dx = e.clientX-prevX, dy = e.clientY-prevY;
         prevX = e.clientX; prevY = e.clientY;
@@ -346,23 +366,41 @@
       if(hit) openClient(hit.object.userData.clientId);
     });
 
+    // passive cursor-parallax, independent of drag-to-spin: the camera
+    // drifts a little toward wherever the pointer is, the same "world subtly
+    // follows your cursor" feel as unseen.co's hero, easing in every frame
+    // so it always feels smooth rather than snapping to the pointer
+    let camTX = 0, camTY = 0;
+
     function animate(){
       requestAnimationFrame(animate);
+      camTX += (parallax.x * 0.7 - camTX) * 0.04;
+      camTY += (parallax.y * 0.4 - camTY) * 0.04;
+      camera.position.x = camTX;
+      camera.position.y = camTY;
+      camera.lookAt(0, 0, 0);
       if(!dragging){
         velX *= 0.94; velY *= 0.94;
         group.rotation.y += velY + 0.0014;
         group.rotation.x += velX;
         group.rotation.x = Math.max(-0.5, Math.min(0.5, group.rotation.x));
       }
+      // compare by clientId rather than exact object reference - the front
+      // and back badge swap which one the raycaster actually hits as the
+      // sphere spins through an edge-on angle, and they should be treated
+      // as a single hoverable tile rather than flickering in and out
       raycaster.setFromCamera(mouseNDC, camera);
       const hit = raycaster.intersectObjects(tiles)[0];
-      if(hit && hit.object !== hovered){
-        if(hovered){ hovered.scale.set(1,1,1); hovered.userData.ring?.scale.set(1,1,1); }
-        hovered = hit.object; hovered.scale.set(1.15,1.15,1); hovered.userData.ring?.scale.set(1.15,1.15,1);
-        if(cursorEl) cursorEl.classList.add('grow');
-      } else if(!hit && hovered){
-        hovered.scale.set(1,1,1); hovered.userData.ring?.scale.set(1,1,1); hovered = null;
-        if(cursorEl) cursorEl.classList.remove('grow');
+      const hitId = hit ? hit.object.userData.clientId : null;
+      const hoveredId = hovered ? hovered.userData.clientId : null;
+      if(hitId !== hoveredId){
+        if(hovered){ hovered.userData.pair.forEach(m=>m.scale.set(1,1,1)); hovered.userData.ring.scale.set(1,1,1); }
+        hovered = hit ? hit.object : null;
+        if(hovered){
+          hovered.userData.pair.forEach(m=>m.scale.set(1.15,1.15,1));
+          hovered.userData.ring.scale.set(1.15,1.15,1);
+        }
+        if(cursorEl) cursorEl.classList.toggle('grow', !!hovered);
       }
       // keep the floating name tag pinned above whichever tile is hovered,
       // so it's always clear which client each tile represents before you click

@@ -1,15 +1,34 @@
 // ── shared chrome: cursor, slide-in menu, cross-page wipe transition,
 // ambient butterfly swarm, reveal-on-scroll. Included on every page. ──
 
-// custom cursor
+// custom cursor - a plain growing circle by default, but on a few key nav
+// elements it morphs into a small text pill instead (same "cursor follows
+// and labels the link" feel as unseen.co), then back to the plain circle
+// for every other link/button so the effect stays a light touch, not noise.
 (function(){
   const cursor = document.getElementById('cursor');
   if(!cursor) return;
+  const label = document.createElement('span');
+  label.className = 'cursor-label';
+  cursor.appendChild(label);
+
   window.addEventListener('pointermove', e=>{
     cursor.style.left = e.clientX + 'px';
     cursor.style.top = e.clientY + 'px';
   });
+
+  const LABELS = [['.mark', 'Home'], ['.menu-btn', 'Menu'], ['.menu-close', 'Close'], ['.pill-btn', 'View']];
+  const labelled = new Set();
+  LABELS.forEach(([sel, text])=>{
+    document.querySelectorAll(sel).forEach(el=>{
+      labelled.add(el);
+      el.addEventListener('mouseenter', ()=>{ label.textContent = text; cursor.classList.add('label'); });
+      el.addEventListener('mouseleave', ()=> cursor.classList.remove('label'));
+    });
+  });
+
   document.querySelectorAll('a, button, .hero-s-stage').forEach(el=>{
+    if(labelled.has(el)) return;
     el.addEventListener('mouseenter', ()=> cursor.classList.add('grow'));
     el.addEventListener('mouseleave', ()=> cursor.classList.remove('grow'));
   });
