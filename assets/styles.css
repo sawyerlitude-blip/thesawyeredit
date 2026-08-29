@@ -226,17 +226,20 @@ nav{
 .work-section{padding:60px 0 100px;}
 .project-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,260px));gap:22px;margin-top:16px;justify-content:center;}
 .project-card{
-  position:relative;aspect-ratio:3/4;border-radius:16px;overflow:hidden;cursor:none;
-  background:linear-gradient(155deg,#1b1815,#100e0c);border:1px solid var(--line);display:block;
+  position:relative;border-radius:16px;overflow:hidden;cursor:none;
+  background:linear-gradient(155deg,#1b1815,#100e0c);border:1px solid var(--line);
+  display:flex;flex-direction:column;
   transition:transform .45s var(--ease-out);
 }
 .project-card:hover{transform:translateY(-4px);}
-/* client mark sits on its own dark panel instead of a stretched cover photo -
-   real logos (or, for the multi-venue pub card, a typographic mark), centred
-   and left undistorted, with the same dark bottom overlay for the info panel */
+/* client mark sits in its own fixed-height panel instead of a stretched cover
+   photo - real logos (or, for the multi-venue pub card, a typographic mark),
+   centred and left undistorted. The text panel below is normal document
+   flow (not overlaid on top of the logo), so however much copy a card has,
+   it just pushes the card taller instead of colliding with the mark above it */
 .project-card-logo{
-  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  padding:14% 12% 30%;
+  flex:0 0 auto;height:130px;display:flex;align-items:center;justify-content:center;
+  padding:18px 12%;border-bottom:1px solid rgba(245,244,242,.08);
 }
 .project-card-logo img{
   max-width:100%;max-height:100%;object-fit:contain;display:block;
@@ -245,22 +248,19 @@ nav{
 }
 .project-card:hover .project-card-logo img{transform:scale(1.07);}
 .project-card-wordmark{
-  display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;
   transition:transform .5s var(--ease-out);
 }
 .project-card:hover .project-card-wordmark{transform:scale(1.05);}
 .project-card-wordmark span{
   font-family:'Playfair Display',serif;font-style:italic;color:#f5f4f2;
-  font-size:1.02rem;line-height:1.3;
+  font-size:.86rem;line-height:1.25;
 }
 .project-card-wordmark small{
-  font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);
+  font-family:var(--mono);font-size:.56rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);
+  margin-bottom:2px;
 }
-.project-card::after{
-  content:'';position:absolute;inset:0;background:linear-gradient(to top, rgba(10,9,8,.94) 0%, rgba(10,9,8,.35) 45%, transparent 75%);
-  pointer-events:none;
-}
-.project-card-content{position:absolute;left:0;right:0;bottom:0;padding:16px;z-index:2;}
+.project-card-content{flex:1 1 auto;padding:16px;}
 .project-card-tag{font-family:var(--mono);font-size:.56rem;letter-spacing:.06em;text-transform:uppercase;
   color:var(--accent);margin-bottom:5px;display:block;}
 .project-card-name{font-family:'Space Grotesk',sans-serif;font-weight:700;text-transform:uppercase;
