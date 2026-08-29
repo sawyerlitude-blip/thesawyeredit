@@ -210,20 +210,20 @@
     const butterflyTexture = new THREE.TextureLoader().load('assets/butterfly.png');
     const flyAspect = 369/324;
     const butterflies = [];
-    const N = isSmallScreen ? 7 : 11;
+    const N = isSmallScreen ? 10 : 15;
     for(let i = 0; i < N; i++){
       const [cx, cy] = sampleInside();
       const mat = new THREE.SpriteMaterial({ map: butterflyTexture, transparent: true, depthWrite: false });
       const sprite = new THREE.Sprite(mat);
-      const size = ((isSmallScreen ? 7 : 9) + Math.random() * 4);
+      const size = ((isSmallScreen ? 6 : 8) + Math.random() * 3.5);
       sprite.scale.set(size * flyAspect, size, 1);
       sprite.position.set(cx, cy, (Math.random() * 2 - 1) * DEPTH * 0.3);
       sprite.renderOrder = 2;
       group.add(sprite);
       butterflies.push({
         sprite, cx, cy, zc: sprite.position.z,
-        rx: 4 + Math.random() * 5, ry: 3.5 + Math.random() * 4.5, rz: DEPTH * 0.22,
-        speed: 0.55 + Math.random() * 0.4, phase: Math.random() * Math.PI * 2, phase2: Math.random() * Math.PI * 2,
+        rx: 12 + Math.random() * 14, ry: 11 + Math.random() * 13, rz: DEPTH * 0.32,
+        speed: 0.4 + Math.random() * 0.3, phase: Math.random() * Math.PI * 2, phase2: Math.random() * Math.PI * 2,
         baseSize: size, flap: Math.random() * Math.PI * 2, flapSpeed: 0.3 + Math.random() * 0.16
       });
     }
