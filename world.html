@@ -71,69 +71,87 @@
   <div>
     <h1>S <em>World</em></h1>
   </div>
-  <p>Drag the S to explore — one active client right now, plus recent work across restaurants and pubs.</p>
+  <p>Drag the S to explore, then click a client to see the work — photos, videos and the full story.</p>
 </section>
 
-<section class="work-section">
-  <div class="project-grid">
-
-    <div class="project-card" tabindex="0" role="button" aria-label="Open AMANO Group video gallery" data-idx="0" data-project="amano" data-type="video">
-      <div class="project-card-content">
-        <span class="project-card-tag">● Active · Hotel Chain · Covent Garden</span>
-        <div class="project-card-name">AMANO Group</div>
-        <div class="project-card-dates">October 2025 – Present · Social Media &amp; Marketing Manager</div>
-        <p class="project-card-desc">Creating content for the entire group — the London hotel, its rooftop bar, and Penelope's, its Middle Eastern-Spanish fusion restaurant.</p>
-        <div class="project-card-result"><b>+11.7%</b>&nbsp;organic community growth so far</div>
-        <div class="project-card-actions">
-          <button type="button" class="pcard-btn" data-open="photo" data-project="amano">Photos</button>
-          <button type="button" class="pcard-btn" data-open="video" data-project="amano">Videos</button>
-        </div>
-        <div class="work-links">
-          <a href="https://www.amanogroup.com/en/london" target="_blank" rel="noopener">Visit site</a>
-          <a href="https://www.instagram.com/amanocoventgarden/" target="_blank" rel="noopener">Instagram</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="project-card" tabindex="0" role="button" aria-label="Open Aubaine video gallery" data-idx="1" data-project="aubaine" data-type="video">
-      <div class="project-card-content">
-        <span class="project-card-tag">Restaurant Chain · Multi-site</span>
-        <div class="project-card-name">Aubaine</div>
-        <div class="project-card-dates">March 2023 – June 2025 · Social Media &amp; Event Manager</div>
-        <p class="project-card-desc">Showcasing the dishes across all of Aubaine's London sites — Notting Hill, Marylebone, Mayfair, Brompton and Selfridges.</p>
-        <div class="project-card-result"><b>+12%</b>&nbsp;organic growth in followers &amp; engagement over 3 years</div>
-        <div class="project-card-actions">
-          <button type="button" class="pcard-btn" data-open="photo" data-project="aubaine">Photos</button>
-          <button type="button" class="pcard-btn" data-open="video" data-project="aubaine">Videos</button>
-        </div>
-        <div class="work-links">
-          <a href="https://aubaine.co.uk/" target="_blank" rel="noopener">Visit site</a>
-          <a href="https://www.instagram.com/aubaineuk/" target="_blank" rel="noopener">Instagram</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="project-card" tabindex="0" role="button" aria-label="Open London Pub Portfolio video gallery" data-idx="2" data-project="pubs" data-type="video">
-      <div class="project-card-content">
-        <span class="project-card-tag">Pub Group · Belgravia · Rotherhithe · Wandsworth</span>
-        <div class="project-card-name">London Pub Portfolio</div>
-        <div class="project-card-dates">September 2024 – January 2026 · Content Creator</div>
-        <p class="project-card-desc">One client, three neighbourhood pubs across London — The Rising Sun, The Brunel and The Garratt Tavern.</p>
-        <div class="project-card-result"><b>+17%</b>&nbsp;organic follower growth</div>
-        <div class="project-card-actions">
-          <button type="button" class="pcard-btn" data-open="photo" data-project="pubs">Photos</button>
-          <button type="button" class="pcard-btn" data-open="video" data-project="pubs">Videos</button>
-        </div>
-        <div class="work-links">
-          <a href="https://www.risingsunbelgravia.co.uk/" target="_blank" rel="noopener">Rising Sun</a>
-          <a href="https://www.brunel-rotherhithe.co.uk/" target="_blank" rel="noopener">The Brunel</a>
-          <a href="https://www.thegarratttavernwandsworth.co.uk/" target="_blank" rel="noopener">Garratt Tavern</a>
-        </div>
-      </div>
-    </div>
-
+<!-- client hotspots - sit around the S near the top of the page (it's fixed
+     in the background so it's still there once you scroll further down,
+     but the clickable dots themselves scroll away with this section rather
+     than following you the whole way down, so they don't sit on top of the
+     Services/Approach copy below). -->
+<section class="world-hotspots">
+  <div class="hotspot hs-amano" data-client="amano" tabindex="0" role="button" aria-label="View AMANO Group">
+    <div class="dot"></div><div class="hlabel">AMANO Group</div>
+  </div>
+  <div class="hotspot hs-aubaine" data-client="aubaine" tabindex="0" role="button" aria-label="View Aubaine">
+    <div class="dot"></div><div class="hlabel">Aubaine</div>
+  </div>
+  <div class="hotspot hs-pubs" data-client="pubs" tabindex="0" role="button" aria-label="View London Pub Portfolio">
+    <div class="dot"></div><div class="hlabel">London Pub Portfolio</div>
   </div>
 </section>
+
+<!-- reveal overlay - holds the exact same project cards (tag, dates,
+     description, result, Photos/Videos buttons wired to the real modals
+     below, and work links) as before, shown one at a time -->
+<div class="client-reveal-overlay" id="clientRevealOverlay">
+  <button class="client-reveal-close" id="clientRevealClose" aria-label="Close">✕</button>
+
+  <div class="project-card" tabindex="0" role="button" aria-label="Open AMANO Group video gallery" data-idx="0" data-project="amano" data-type="video">
+    <div class="project-card-content">
+      <span class="project-card-tag">● Active · Hotel Chain · Covent Garden</span>
+      <div class="project-card-name">AMANO Group</div>
+      <div class="project-card-dates">October 2025 – Present · Social Media &amp; Marketing Manager</div>
+      <p class="project-card-desc">Creating content for the entire group — the London hotel, its rooftop bar, and Penelope's, its Middle Eastern-Spanish fusion restaurant.</p>
+      <div class="project-card-result"><b>+11.7%</b>&nbsp;organic community growth so far</div>
+      <div class="project-card-actions">
+        <button type="button" class="pcard-btn" data-open="photo" data-project="amano">Photos</button>
+        <button type="button" class="pcard-btn" data-open="video" data-project="amano">Videos</button>
+      </div>
+      <div class="work-links">
+        <a href="https://www.amanogroup.com/en/london" target="_blank" rel="noopener">Visit site</a>
+        <a href="https://www.instagram.com/amanocoventgarden/" target="_blank" rel="noopener">Instagram</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-card" tabindex="0" role="button" aria-label="Open Aubaine video gallery" data-idx="1" data-project="aubaine" data-type="video">
+    <div class="project-card-content">
+      <span class="project-card-tag">Restaurant Chain · Multi-site</span>
+      <div class="project-card-name">Aubaine</div>
+      <div class="project-card-dates">March 2023 – June 2025 · Social Media &amp; Event Manager</div>
+      <p class="project-card-desc">Showcasing the dishes across all of Aubaine's London sites — Notting Hill, Marylebone, Mayfair, Brompton and Selfridges.</p>
+      <div class="project-card-result"><b>+12%</b>&nbsp;organic growth in followers &amp; engagement over 3 years</div>
+      <div class="project-card-actions">
+        <button type="button" class="pcard-btn" data-open="photo" data-project="aubaine">Photos</button>
+        <button type="button" class="pcard-btn" data-open="video" data-project="aubaine">Videos</button>
+      </div>
+      <div class="work-links">
+        <a href="https://aubaine.co.uk/" target="_blank" rel="noopener">Visit site</a>
+        <a href="https://www.instagram.com/aubaineuk/" target="_blank" rel="noopener">Instagram</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-card" tabindex="0" role="button" aria-label="Open London Pub Portfolio video gallery" data-idx="2" data-project="pubs" data-type="video">
+    <div class="project-card-content">
+      <span class="project-card-tag">Pub Group · Belgravia · Rotherhithe · Wandsworth</span>
+      <div class="project-card-name">London Pub Portfolio</div>
+      <div class="project-card-dates">September 2024 – January 2026 · Content Creator</div>
+      <p class="project-card-desc">One client, three neighbourhood pubs across London — The Rising Sun, The Brunel and The Garratt Tavern.</p>
+      <div class="project-card-result"><b>+17%</b>&nbsp;organic follower growth</div>
+      <div class="project-card-actions">
+        <button type="button" class="pcard-btn" data-open="photo" data-project="pubs">Photos</button>
+        <button type="button" class="pcard-btn" data-open="video" data-project="pubs">Videos</button>
+      </div>
+      <div class="work-links">
+        <a href="https://www.risingsunbelgravia.co.uk/" target="_blank" rel="noopener">Rising Sun</a>
+        <a href="https://www.brunel-rotherhithe.co.uk/" target="_blank" rel="noopener">The Brunel</a>
+        <a href="https://www.thegarratttavernwandsworth.co.uk/" target="_blank" rel="noopener">Garratt Tavern</a>
+      </div>
+    </div>
+  </div>
+</div>
 
 <section class="services" id="services">
   <div class="section-head reveal">
@@ -280,6 +298,29 @@
       document.getElementById('menuOverlay')?.classList.remove('open');
     });
   });
+
+  // client hotspots - clicking (or Enter/Space) one reveals that client's
+  // card (same content, same Photos/Videos modals as always)
+  (function(){
+    const overlay = document.getElementById('clientRevealOverlay');
+    const closeBtn = document.getElementById('clientRevealClose');
+    function openClient(id){
+      overlay.querySelectorAll('.project-card').forEach(card=>{
+        card.classList.toggle('active', card.dataset.project === id);
+      });
+      overlay.classList.add('open');
+    }
+    function closeClient(){ overlay.classList.remove('open'); }
+    document.querySelectorAll('.hotspot').forEach(h=>{
+      h.addEventListener('click', ()=> openClient(h.dataset.client));
+      h.addEventListener('keydown', e=>{
+        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openClient(h.dataset.client); }
+      });
+    });
+    closeBtn.addEventListener('click', closeClient);
+    overlay.addEventListener('click', e=>{ if(e.target === overlay) closeClient(); });
+    document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeClient(); });
+  })();
 </script>
 <script>
   const BASE = 'https://thesawyeredit.com/';
