@@ -72,12 +72,12 @@
 <div class="wipe" id="wipe">Loading —</div>
 
 <section class="hero" id="heroA">
-  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="hero-bg" id="heroBg" aria-hidden="true"></div>
   <div class="hero-a-top">
     <div class="hero-a-eyebrow-top">London · Hospitality content</div>
     <div class="hero-a-title">THE SAWYER <em>Edit</em></div>
   </div>
-  <div class="hero-glow"></div>
+  <div class="hero-glow" id="heroGlow"></div>
   <div class="hero-s-stage" id="heroSStage">
     <div class="hero-s-face" id="heroSFace">
       <img src="https://thesawyeredit.com/images/s-original.png" alt="The Sawyer Edit - S monogram" class="hero-s-img" id="heroSImg" draggable="false">
@@ -142,6 +142,34 @@
         sheenAngle += 0.35 + spin * 6;
         sheen.style.setProperty('--sheen-ang', sheenAngle + 'deg');
       }
+    }
+    tick();
+  })();
+</script>
+<script>
+  // passive cursor-parallax on the hero background - same "the whole scene
+  // subtly follows your cursor" feel as unseen.co's landing page, and as
+  // the S World scene already has. Background layer (the colour bloom)
+  // drifts the most, the S monogram's stage drifts a touch too, for a
+  // simple sense of depth; mouse-only, skipped on touch devices.
+  (function(){
+    if(matchMedia('(pointer:coarse)').matches) return;
+    const bg = document.getElementById('heroBg');
+    const glow = document.getElementById('heroGlow');
+    const stage = document.getElementById('heroSStage');
+    if(!bg) return;
+    let tx = 0, ty = 0, cx = 0, cy = 0;
+    addEventListener('pointermove', e=>{
+      tx = e.clientX / innerWidth - 0.5;
+      ty = e.clientY / innerHeight - 0.5;
+    });
+    function tick(){
+      requestAnimationFrame(tick);
+      cx += (tx - cx) * 0.05;
+      cy += (ty - cy) * 0.05;
+      bg.style.transform = `translate3d(${cx * -46}px, ${cy * -30}px, 0)`;
+      if(glow) glow.style.transform = `translate(-50%,-50%) translate3d(${cx * -20}px, ${cy * -14}px, 0)`;
+      if(stage) stage.style.transform = `translate(-50%,-50%) translate3d(${cx * -12}px, ${cy * -8}px, 0)`;
     }
     tick();
   })();

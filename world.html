@@ -263,6 +263,7 @@
     // trade a little visual crispness for a meaningfully steadier frame
     // rate, which matters more for a scene you're meant to drag around
     const isSmallScreen = innerWidth < 760;
+    const isTouch = matchMedia('(pointer:coarse)').matches;
 
     const canvas = document.getElementById('worldCanvas');
     const scene = new THREE.Scene();
@@ -293,11 +294,12 @@
     const tiles = [];
     CLIENTS.forEach((c, i)=>{
       const angle = (i / CLIENTS.length) * Math.PI * 2;
-      const radius = 3.4;
+      // tighter ring + smaller badges on phones - the same radius felt
+      // oversized and cramped together on a narrow screen
+      const radius = isSmallScreen ? 2.5 : 3.4;
       // circular badge tiles (client logos are square black-background images;
       // a circle geometry crops them to a clean disc instead of a square card).
-      // Smaller radius than before, per feedback.
-      const R = 0.55;
+      const R = isSmallScreen ? 0.4 : 0.55;
       const geo = new THREE.CircleGeometry(R, 48);
       const mat = new THREE.MeshBasicMaterial({ color:0x0a0908, transparent:true, opacity:.98 });
       const pos = new THREE.Vector3(Math.cos(angle)*radius, Math.sin(angle*0.6)*0.6, Math.sin(angle)*radius);
@@ -365,8 +367,15 @@
     addEventListener('pointerup', ()=> dragging=false);
     addEventListener('pointerleave', ()=> dragging=false);
 
-    canvas.addEventListener('click', ()=>{
-      raycaster.setFromCamera(mouseNDC, camera);
+    // NDC is computed straight from the click event itself, not from the
+    // shared mouseNDC that pointermove keeps updated - on mobile, tapping a
+    // tile fires pointerdown/pointerup with no pointermove in between (there's
+    // no such thing as "hover" before a touch), so mouseNDC was still stuck
+    // wherever the page loaded and every tap raycast into empty space. This
+    // is why clients couldn't be opened on mobile at all.
+    canvas.addEventListener('click', e=>{
+      const ndc = new THREE.Vector2((e.clientX/innerWidth)*2-1, -(e.clientY/innerHeight)*2+1);
+      raycaster.setFromCamera(ndc, camera);
       const hit = raycaster.intersectObjects(tiles)[0];
       if(hit) openClient(hit.object.userData.clientId);
     });
@@ -390,6 +399,11 @@
         group.rotation.x += velX;
         group.rotation.x = Math.max(-0.5, Math.min(0.5, group.rotation.x));
       }
+      // touch has no real "hover", so skip the per-frame raycast/scale-up/
+      // label work entirely there - it was pure wasted CPU every frame on
+      // phones (one more thing making the scene feel less fluid), and
+      // tapping already opens a client directly via the click handler above
+      if(!isTouch){
       // compare by clientId rather than exact object reference - the front
       // and back badge swap which one the raycaster actually hits as the
       // sphere spins through an edge-on angle, and they should be treated
@@ -423,6 +437,7 @@
           tileLabel.classList.remove('show');
         }
       }
+      } // end !isTouch hover block
       sSprite.lookAt(camera.position);
       renderer.render(scene, camera);
     }
