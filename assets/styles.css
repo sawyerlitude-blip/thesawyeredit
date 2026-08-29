@@ -208,7 +208,11 @@ nav{
    you pass the hero, instead of staying pinned behind every section on the
    page and bleeding through their empty space. Clicking a tile reveals that
    client's full project card via .client-reveal-overlay below. */
-.world-hero{position:relative;height:100vh;overflow:hidden;}
+/* z-index:2 (not auto) makes this its own stacking context, same convention
+   as every other content <section> on the site - without it, the fixed
+   ambient butterfly canvas (z-index:1) was painting on top of the 3D scene
+   and client tiles inside here instead of staying strictly behind them */
+.world-hero{position:relative;height:100vh;overflow:hidden;z-index:2;}
 #worldCanvas{position:absolute;inset:0;z-index:0;}
 .world-scene-hint{
   position:absolute;bottom:30px;left:0;right:0;z-index:2;text-align:center;pointer-events:none;

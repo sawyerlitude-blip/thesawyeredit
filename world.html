@@ -299,6 +299,16 @@
       group.add(mesh);
       tiles.push(mesh);
       loader.load(c.photo, tex=>{ mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; });
+
+      // thin gold rim right at the badge's edge - gives each client tile a
+      // "little planet" / medallion feel instead of a flat cut-out circle
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(0.82, 0.9, 48),
+        new THREE.MeshBasicMaterial({ color:0xe0a045, transparent:true, opacity:.6, side:THREE.DoubleSide })
+      );
+      ring.position.set(mesh.position.x, mesh.position.y, mesh.position.z - 0.01);
+      group.add(ring);
+      mesh.userData.ring = ring;
     });
 
     addEventListener('resize', ()=>{
@@ -347,11 +357,11 @@
       raycaster.setFromCamera(mouseNDC, camera);
       const hit = raycaster.intersectObjects(tiles)[0];
       if(hit && hit.object !== hovered){
-        if(hovered) hovered.scale.set(1,1,1);
-        hovered = hit.object; hovered.scale.set(1.15,1.15,1);
+        if(hovered){ hovered.scale.set(1,1,1); hovered.userData.ring?.scale.set(1,1,1); }
+        hovered = hit.object; hovered.scale.set(1.15,1.15,1); hovered.userData.ring?.scale.set(1.15,1.15,1);
         if(cursorEl) cursorEl.classList.add('grow');
       } else if(!hit && hovered){
-        hovered.scale.set(1,1,1); hovered = null;
+        hovered.scale.set(1,1,1); hovered.userData.ring?.scale.set(1,1,1); hovered = null;
         if(cursorEl) cursorEl.classList.remove('grow');
       }
       // keep the floating name tag pinned above whichever tile is hovered,
