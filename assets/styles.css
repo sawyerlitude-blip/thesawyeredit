@@ -177,18 +177,19 @@ nav{
      visible / cropped" */
   padding-bottom:132px;
 }
-/* soft colour bloom behind the S monogram - heavily blurred and masked so
-   it reads as ambient glow rather than a hard-edged photo, blending into
-   the cream page background on every side instead of sitting on top of it */
+/* the book photo itself, actually visible behind the hero content - only
+   lightly blurred (a soft "through glass" feel, not fully abstracted into a
+   colour blob like an earlier pass), fading to the cream page colour right
+   at the very edges so it still blends in rather than hard-cropping */
 .hero-bg{
-  position:absolute;inset:-12%;z-index:-1;pointer-events:none;
-  background:url('https://thesawyeredit.com/images/hero-glow-bg.jpg') center 55%/cover no-repeat;
-  opacity:.5;filter:blur(42px) saturate(1.2);
-  -webkit-mask-image:radial-gradient(ellipse 52% 48% at 50% 47%, #000 0%, #000 30%, transparent 68%);
-  mask-image:radial-gradient(ellipse 52% 48% at 50% 47%, #000 0%, #000 30%, transparent 68%);
+  position:absolute;inset:-8%;z-index:-1;pointer-events:none;
+  background:url('https://thesawyeredit.com/images/hero-glow-bg.jpg') center 42%/cover no-repeat;
+  opacity:.92;filter:blur(3px) saturate(1.15) brightness(.97);
+  -webkit-mask-image:radial-gradient(ellipse 78% 75% at 50% 45%, #000 0%, #000 55%, transparent 92%);
+  mask-image:radial-gradient(ellipse 78% 75% at 50% 45%, #000 0%, #000 55%, transparent 92%);
 }
 @media (max-width:640px){
-  .hero-bg{opacity:.4;}
+  .hero-bg{opacity:.8;}
 }
 .hero-glow{
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
