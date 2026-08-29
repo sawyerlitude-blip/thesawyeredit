@@ -79,10 +79,7 @@
   </div>
   <div class="hero-glow" id="heroGlow"></div>
   <div class="hero-s-stage" id="heroSStage">
-    <div class="hero-s-face" id="heroSFace">
-      <img src="https://thesawyeredit.com/images/s-original.png" alt="The Sawyer Edit - S monogram" class="hero-s-img" id="heroSImg" draggable="false">
-      <div class="hero-s-sheen" id="heroSSheen"></div>
-    </div>
+    <canvas class="hero-s-canvas" id="heroSCanvas" aria-label="The Sawyer Edit - S monogram, a thick 3D block letter with a universe and butterflies flowing inside"></canvas>
   </div>
   <div class="hero-a-inner">
     <a href="world.html" class="pill-btn" data-transition data-label="Loading S World —" id="viewWorkBtn">
@@ -101,49 +98,172 @@
 </section>
 
 <script src="assets/app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-  // S monogram drag-to-tilt
+  // S monogram - real 3D extruded block letter (traced from the actual logo
+  // shape), with a universe/butterfly scene flowing on its front face,
+  // rotated by drag same as before, now true 3D depth instead of a flat
+  // image + CSS tilt.
   (function(){
     const stage = document.getElementById('heroSStage');
-    const face = document.getElementById('heroSFace');
-    const img = document.getElementById('heroSImg');
-    const sheen = document.getElementById('heroSSheen');
-    if(!stage || !face || !img) return;
-    img.style.transform = 'scaleX(0.82)';
-    let rotX = 8, rotY = -14, velX = 0, velY = 0, dragging = false, prevX = 0, prevY = 0, sheenAngle = 0;
-    function apply(){ face.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`; }
-    apply();
-    stage.addEventListener('pointerdown', e=>{ dragging = true; prevX = e.clientX; prevY = e.clientY; stage.setPointerCapture(e.pointerId); });
+    const canvas = document.getElementById('heroSCanvas');
+    if(!stage || !canvas || !window.THREE) return;
+    const isSmallScreen = innerWidth < 760;
+
+    const SHAPE_PTS = [[-33.13804626464844,47.305328369140625],[-36.69379425048828,43.442291259765625],[-39.0423469543457,39.44755935668945],[-40.18370056152344,35.32113265991211],[-40.53488540649414,30.953264236450195],[-40.09590148925781,26.343957901000977],[-38.84480667114258,21.844396591186523],[-36.781593322753906,17.45458221435547],[-33.774566650390625,13.48179817199707],[-29.823734283447266,9.926047325134277],[-20.934356689453125,5.272842884063721],[-7.106437683105469,-0.47781580686569214],[1.5414994955062866,-4.40670108795166],[5.009453773498535,-6.51381254196167],[7.006820201873779,-7.303979396820068],[7.533597946166992,-6.7772016525268555],[9.113931655883789,-7.786859035491943],[11.747820854187012,-10.332952499389648],[12.450191497802734,-11.957183837890625],[11.221043586730957,-12.659554481506348],[10.05774211883545,-14.393531799316406],[8.960288047790527,-17.159114837646484],[7.160463809967041,-18.89309310913086],[4.658268451690674,-19.595462799072266],[1.8926846981048584,-19.749107360839844],[-1.1362881660461426,-19.354022979736328],[-4.296955585479736,-17.72979164123535],[-7.589317321777344,-14.876411437988281],[-11.562100410461426,-10.091512680053711],[-16.21530532836914,-3.375094175338745],[-19.573514938354492,0.6196381449699402],[-21.636728286743164,1.8926846981048584],[-26.333829879760742,0.5098927617073059],[-33.66482162475586,-3.528737783432007],[-37.835147857666016,-6.579659938812256],[-38.84480667114258,-8.64287281036377],[-37.835147857666016,-13.647263526916504],[-34.806175231933594,-21.59282875061035],[-31.799150466918945,-27.650775909423828],[-28.814077377319336,-31.82110023498535],[-25.280275344848633,-35.398799896240234],[-21.19774627685547,-38.38387680053711],[-21.109949111938477,-40.66658020019531],[-25.01688575744629,-42.24691390991211],[-24.09502410888672,-43.783348083496094],[-18.3443660736084,-45.27588653564453],[-9.806174278259277,-46.10995101928711],[1.5195503234863281,-46.28554153442383],[6.8970746994018555,-46.24164581298828],[6.326398849487305,-45.97825622558594],[7.55554723739624,-45.49537658691406],[10.58452033996582,-44.793006896972656],[14.710947036743164,-44.44182205200195],[19.93482780456543,-44.44182205200195],[24.7197265625,-43.629703521728516],[29.065645217895508,-42.00547409057617],[31.326398849487305,-40.84217071533203],[31.501991271972656,-40.139801025390625],[30.141149520874023,-39.393531799316406],[27.243871688842773,-38.60336685180664],[28.099884033203125,-36.0792236328125],[32.709190368652344,-31.82110023498535],[35.95765686035156,-27.387386322021484],[37.84527587890625,-22.778079986572266],[38.81103515625,-17.663944244384766],[38.85493469238281,-12.0449800491333],[37.99892044067383,-6.491863250732422],[36.24299240112305,-1.0045937299728394],[34.245628356933594,2.9242913722991943],[32.00682067871094,5.294792175292969],[28.099884033203125,7.972579479217529],[22.524818420410156,10.957653999328613],[12.274599075317383,15.084080696105957],[-2.6507747173309326,20.35186004638672],[-11.540151596069336,24.390491485595703],[-14.393531799316406,27.19997215270996],[-14.942258834838867,29.570472717285156],[-13.186332702636719,31.501991271972656],[-9.56473445892334,32.20436096191406],[-4.077464580535889,31.67758560180664],[0.9927724599838257,29.965557098388672],[5.645977020263672,27.06827735900879],[8.12622356414795,26.23421287536621],[8.433509826660156,27.463361740112305],[9.28952407836914,27.4414119720459],[10.694265365600586,26.168365478515625],[11.111297607421875,25.09286117553711],[10.540621757507324,24.21489715576172],[10.65036678314209,22.919902801513672],[11.440533638000488,21.207874298095703],[12.581886291503906,19.97872543334961],[14.074423789978027,19.23245620727539],[18.310596466064453,21.844396591186523],[25.290403366088867,27.814546585083008],[28.27547836303711,32.928680419921875],[27.265819549560547,37.18680191040039],[24.280744552612305,41.313228607177734],[19.320253372192383,45.30796432495117],[12.955020904541016,48.644222259521484],[5.185046672821045,51.3220100402832],[-3.506788730621338,53.012088775634766],[-13.120485305786133,53.71445846557617],[-21.28554344177246,52.85844421386719],[-28.00196075439453,50.44404602050781]];
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 1000);
+    camera.position.set(0, 0, 260);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isSmallScreen, alpha: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, isSmallScreen ? 1.5 : 2));
+    renderer.outputEncoding = THREE.sRGBEncoding;
+
+    function resize(){
+      const w = stage.clientWidth, h = stage.clientHeight;
+      if(!w || !h) return;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h, false);
+    }
+    resize();
+    addEventListener('resize', resize);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+    const key = new THREE.DirectionalLight(0xffffff, 0.9); key.position.set(-60, 90, 120); scene.add(key);
+    const fill = new THREE.DirectionalLight(0xffffff, 0.35); fill.position.set(80, -40, 60); scene.add(fill);
+    const rim = new THREE.DirectionalLight(0xffe9cf, 0.4); rim.position.set(30, 60, -100); scene.add(rim);
+
+    const shape = new THREE.Shape();
+    SHAPE_PTS.forEach((p, i)=>{ if(i === 0) shape.moveTo(p[0], p[1]); else shape.lineTo(p[0], p[1]); });
+    shape.closePath();
+
+    const box = { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity };
+    SHAPE_PTS.forEach(p=>{
+      box.minX = Math.min(box.minX, p[0]); box.maxX = Math.max(box.maxX, p[0]);
+      box.minY = Math.min(box.minY, p[1]); box.maxY = Math.max(box.maxY, p[1]);
+    });
+    const bw = box.maxX - box.minX, bh = box.maxY - box.minY;
+
+    const DEPTH = 20;
+    const geo = new THREE.ExtrudeGeometry(shape, {
+      depth: DEPTH, bevelEnabled: true, bevelThickness: 2.2, bevelSize: 1.8,
+      bevelSegments: isSmallScreen ? 2 : 4, curveSegments: 2
+    });
+    const uv = geo.attributes.uv, pos = geo.attributes.position;
+    for(let i = 0; i < uv.count; i++){
+      uv.setXY(i, (pos.getX(i) - box.minX) / bw, (pos.getY(i) - box.minY) / bh);
+    }
+    uv.needsUpdate = true;
+
+    const FW = isSmallScreen ? 280 : 420;
+    const FH = Math.round(FW * (bh / bw));
+    const flowCanvas = document.createElement('canvas');
+    flowCanvas.width = FW; flowCanvas.height = FH;
+    const fctx = flowCanvas.getContext('2d');
+    const flowTexture = new THREE.CanvasTexture(flowCanvas);
+    flowTexture.encoding = THREE.sRGBEncoding;
+    flowTexture.wrapS = flowTexture.wrapT = THREE.ClampToEdgeWrapping;
+
+    const bgImg = new Image();
+    const butterflyImg = new Image();
+    let bgReady = false, flyReady = false;
+    bgImg.onload = ()=>{ bgReady = true; };
+    bgImg.src = 'images/s-universe-bg.jpg';
+    butterflyImg.onload = ()=>{ flyReady = true; };
+    butterflyImg.src = 'assets/butterfly.png';
+
+    const flyAspect = 369/324;
+    const butterflies = [];
+    const N = isSmallScreen ? 3 : 4;
+    for(let i = 0; i < N; i++){
+      butterflies.push({
+        ax: 0.16 + Math.random()*0.08, ay: 0.14 + Math.random()*0.08,
+        cx: 0.32 + Math.random()*0.36, cy: 0.32 + Math.random()*0.36,
+        speed: 0.16 + Math.random()*0.1, phase: Math.random()*Math.PI*2, phase2: Math.random()*Math.PI*2,
+        size: (isSmallScreen ? 26 : 34) + Math.random()*16, flap: Math.random()*Math.PI*2, flapSpeed: 0.09 + Math.random()*0.05
+      });
+    }
+
+    function updateFlowTexture(t){
+      if(!bgReady) return;
+      const bw2 = bgImg.width, bh2 = bgImg.height;
+      const scale = Math.max(FW/bw2, FH/bh2);
+      const dw = bw2*scale, dh = bh2*scale;
+      fctx.drawImage(bgImg, (FW-dw)/2, (FH-dh)/2, dw, dh);
+      if(flyReady){
+        butterflies.forEach(b=>{
+          const ang = t*Math.PI*2*b.speed + b.phase;
+          const u = b.cx + Math.sin(ang)*b.ax;
+          const v = b.cy + Math.sin(ang*2 + b.phase2)*b.ay*0.6;
+          const uPrev = b.cx + Math.sin(ang-0.02)*b.ax;
+          const vPrev = b.cy + Math.sin((ang-0.02)*2 + b.phase2)*b.ay*0.6;
+          const heading = Math.atan2(v-vPrev, u-uPrev);
+          b.flap += b.flapSpeed;
+          const wingScale = 0.55 + Math.abs(Math.sin(b.flap))*0.5;
+          const px = u*FW, py = v*FH, hgt = b.size, wid = hgt*flyAspect;
+          fctx.save();
+          fctx.translate(px, py);
+          fctx.rotate(heading + Math.PI/2);
+          fctx.scale(1, wingScale);
+          fctx.globalAlpha = 0.92;
+          fctx.shadowColor = 'rgba(255,255,255,0.35)';
+          fctx.shadowBlur = 6;
+          fctx.drawImage(butterflyImg, -wid/2, -hgt/2, wid, hgt);
+          fctx.restore();
+        });
+      }
+      flowTexture.needsUpdate = true;
+    }
+
+    const frontMat = new THREE.MeshStandardMaterial({ map: flowTexture, roughness: 0.45, metalness: 0.05, emissive: 0x0a0818, emissiveIntensity: 0.25 });
+    const sideMat = new THREE.MeshStandardMaterial({ color: 0xf4f2ee, roughness: 0.45, metalness: 0.05 });
+    const mesh = new THREE.Mesh(geo, [frontMat, sideMat]);
+    const group = new THREE.Group();
+    group.add(mesh);
+    mesh.position.set(0, 0, -DEPTH/2);
+    scene.add(group);
+    group.scale.set(1.05, 1.05, 1.05);
+
+    let dragging = false, lastPX = 0, lastPY = 0, dragRotY = 0, dragRotX = 0, curRotY = 0, curRotX = 0.15, restT = 0;
+
+    stage.addEventListener('pointerdown', e=>{ dragging = true; lastPX = e.clientX; lastPY = e.clientY; stage.setPointerCapture(e.pointerId); });
     stage.addEventListener('pointermove', e=>{
       if(!dragging) return;
-      const dx = e.clientX - prevX, dy = e.clientY - prevY;
-      prevX = e.clientX; prevY = e.clientY;
-      velY = dx * 0.28; velX = -dy * 0.28;
-      rotY += velY; rotX += velX; rotX = Math.max(-45, Math.min(45, rotX));
-      apply();
+      const dx = e.clientX - lastPX, dy = e.clientY - lastPY;
+      lastPX = e.clientX; lastPY = e.clientY;
+      dragRotY += dx * 0.012; dragRotX += dy * 0.012;
+      dragRotX = Math.max(-0.6, Math.min(0.6, dragRotX));
     });
     const stop = ()=>{ dragging = false; };
-    stage.addEventListener('pointerup', stop); stage.addEventListener('pointerleave', stop); stage.addEventListener('pointercancel', stop);
-    let restT = 0;
-    function tick(){
-      requestAnimationFrame(tick);
-      if(!dragging){
-        if(Math.abs(velX) > 0.01 || Math.abs(velY) > 0.01){
-          rotY += velY; rotX += velX; rotX = Math.max(-45, Math.min(45, rotX));
-          velX *= 0.93; velY *= 0.93; apply();
-        } else {
-          restT += 0.008;
-          rotY = -14 + Math.sin(restT) * 10; rotX = 8 + Math.cos(restT * 0.7) * 4;
-          apply();
-        }
+    stage.addEventListener('pointerup', stop);
+    stage.addEventListener('pointerleave', stop);
+    stage.addEventListener('pointercancel', stop);
+
+    let frameCount = 0, flowT = 0;
+    function animate(){
+      requestAnimationFrame(animate);
+      frameCount++;
+      let targetRotY, targetRotX;
+      if(dragging){ targetRotY = dragRotY; targetRotX = 0.15 + dragRotX; }
+      else {
+        restT += 0.004;
+        targetRotY = dragRotY + Math.sin(restT) * 0.3;
+        targetRotX = 0.15 + Math.sin(restT * 0.7) * 0.08;
       }
-      if(sheen){
-        const spin = Math.abs(velX) + Math.abs(velY);
-        sheenAngle += 0.35 + spin * 6;
-        sheen.style.setProperty('--sheen-ang', sheenAngle + 'deg');
+      curRotY += (targetRotY - curRotY) * 0.07;
+      curRotX += (targetRotX - curRotX) * 0.07;
+      group.rotation.y = curRotY;
+      group.rotation.x = curRotX;
+
+      if(!isSmallScreen || frameCount % 2 === 0){
+        flowT += 0.0035;
+        updateFlowTexture(flowT);
       }
+      renderer.render(scene, camera);
     }
-    tick();
+    animate();
   })();
 </script>
 <script>
