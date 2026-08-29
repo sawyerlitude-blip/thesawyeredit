@@ -17,24 +17,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Playfair+Display:ital@1&family=Bebas+Neue&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
 <canvas id="petalCanvas"></canvas>
+<canvas id="worldCanvas"></canvas>
 <div class="cursor" id="cursor"></div>
 
-<!-- the S stays fixed in the background for the whole page - drag it any
-     time, even after scrolling past the header, same as unseen.co/world's
-     centrepiece globe -->
-<div class="world-s-stage" id="worldSStage">
-  <div class="hero-s-face" id="worldSFace">
-    <img src="https://thesawyeredit.com/images/s-original.png" alt="The Sawyer Edit - S monogram" class="hero-s-img" id="worldSImg" draggable="false">
-    <div class="hero-s-sheen" id="worldSSheen"></div>
-  </div>
-</div>
-
 <nav>
-  <a href="index.html#heroA" class="mark">
+  <a href="index.html" class="mark" data-transition data-label="Loading Home —">
     <div class="mark-badge">S</div>
     <div class="mark-text">THE SAWYER EDIT</div>
   </a>
@@ -49,10 +41,10 @@
     <div>
       <button class="menu-close" id="menuCloseBtn">✕</button>
       <nav class="menu-nav">
-        <a href="index.html#heroA"><span class="num">01</span>Home</a>
+        <a href="index.html" data-transition data-label="Loading Home —"><span class="num">01</span>Home</a>
         <a href="world.html" class="current"><span class="num">02</span>Work</a>
-        <a href="index.html#about"><span class="num">03</span>About</a>
-        <a href="index.html#contact"><span class="num">04</span>Contact</a>
+        <a href="about.html" data-transition data-label="Loading About —"><span class="num">03</span>About</a>
+        <a href="contact.html" data-transition data-label="Loading Contact —"><span class="num">04</span>Contact</a>
       </nav>
     </div>
     <div class="menu-footer">
@@ -61,6 +53,8 @@
     </div>
   </div>
 </div>
+
+<div class="wipe" id="wipe">Loading S World —</div>
 
 <div class="footer-cta">
   <span class="footer-cta-dot"></span>
@@ -71,29 +65,14 @@
   <div>
     <h1>S <em>World</em></h1>
   </div>
-  <p>Drag the S to explore, then click a client to see the work — photos, videos and the full story.</p>
+  <p>Drag to explore, then click a client to see the work — photos, videos and the full story.</p>
 </section>
 
-<!-- client hotspots - sit around the S near the top of the page (it's fixed
-     in the background so it's still there once you scroll further down,
-     but the clickable dots themselves scroll away with this section rather
-     than following you the whole way down, so they don't sit on top of the
-     Services/Approach copy below). -->
-<section class="world-hotspots">
-  <div class="hotspot hs-amano" data-client="amano" tabindex="0" role="button" aria-label="View AMANO Group">
-    <div class="dot"></div><div class="hlabel">AMANO Group</div>
-  </div>
-  <div class="hotspot hs-aubaine" data-client="aubaine" tabindex="0" role="button" aria-label="View Aubaine">
-    <div class="dot"></div><div class="hlabel">Aubaine</div>
-  </div>
-  <div class="hotspot hs-pubs" data-client="pubs" tabindex="0" role="button" aria-label="View London Pub Portfolio">
-    <div class="dot"></div><div class="hlabel">London Pub Portfolio</div>
-  </div>
-</section>
+<div class="world-scene-hint">Drag to explore · click a client</div>
 
-<!-- reveal overlay - holds the exact same project cards (tag, dates,
-     description, result, Photos/Videos buttons wired to the real modals
-     below, and work links) as before, shown one at a time -->
+<!-- reveal overlay - the exact same project cards (tag, dates, description,
+     result, Photos/Videos buttons wired to the real modals below, and work
+     links) as always, shown one at a time when a client tile is clicked -->
 <div class="client-reveal-overlay" id="clientRevealOverlay">
   <button class="client-reveal-close" id="clientRevealClose" aria-label="Close">✕</button>
 
@@ -212,7 +191,7 @@
 </section>
 
 <div class="work-footer" style="padding-bottom:120px;">
-  <a href="index.html#contact" class="pill-btn solid">
+  <a href="contact.html" class="pill-btn solid" data-transition data-label="Loading Contact —">
     <span class="txt"><span>Get in touch</span><span class="clone">Get in touch</span></span>
     <span class="arrow">→</span>
   </a>
@@ -244,82 +223,135 @@
 
 <script src="assets/app.js"></script>
 <script>
-  // S monogram drag-to-tilt - same mechanic as the Home hero, plus a subtle
-  // extra rotation tied to scroll position, so scrolling through the work
-  // below also nudges the world, not just dragging.
-  (function(){
-    const stage = document.getElementById('worldSStage');
-    const face = document.getElementById('worldSFace');
-    const img = document.getElementById('worldSImg');
-    const sheen = document.getElementById('worldSSheen');
-    if(!stage || !face || !img) return;
-    img.style.transform = 'scaleX(0.82)';
-    let rotX = 8, rotY = -14, velX = 0, velY = 0, dragging = false, prevX = 0, prevY = 0, sheenAngle = 0;
-    let scrollSpin = 0;
-    function apply(){ face.style.transform = `rotateX(${rotX}deg) rotateY(${rotY + scrollSpin}deg)`; }
-    apply();
-    window.addEventListener('scroll', ()=>{ scrollSpin = window.scrollY * 0.05; apply(); }, { passive:true });
-    stage.addEventListener('pointerdown', e=>{ dragging = true; prevX = e.clientX; prevY = e.clientY; stage.setPointerCapture(e.pointerId); });
-    stage.addEventListener('pointermove', e=>{
-      if(!dragging) return;
-      const dx = e.clientX - prevX, dy = e.clientY - prevY;
-      prevX = e.clientX; prevY = e.clientY;
-      velY = dx * 0.28; velX = -dy * 0.28;
-      rotY += velY; rotX += velX; rotX = Math.max(-45, Math.min(45, rotX));
-      apply();
-    });
-    const stop = ()=>{ dragging = false; };
-    stage.addEventListener('pointerup', stop); stage.addEventListener('pointerleave', stop); stage.addEventListener('pointercancel', stop);
-    let restT = 0;
-    function tick(){
-      requestAnimationFrame(tick);
-      if(!dragging){
-        if(Math.abs(velX) > 0.01 || Math.abs(velY) > 0.01){
-          rotY += velY; rotX += velX; rotX = Math.max(-45, Math.min(45, rotX));
-          velX *= 0.93; velY *= 0.93; apply();
-        } else {
-          restT += 0.008;
-          rotY = -14 + Math.sin(restT) * 10; rotX = 8 + Math.cos(restT * 0.7) * 4;
-          apply();
-        }
-      }
-      if(sheen){
-        const spin = Math.abs(velX) + Math.abs(velY);
-        sheenAngle += 0.35 + spin * 6;
-        sheen.style.setProperty('--sheen-ang', sheenAngle + 'deg');
-      }
-    }
-    tick();
-  })();
-
-  // close the slide-in menu when a link is clicked (same-page or cross-page)
+  // close the slide-in menu when a link is clicked
   document.querySelectorAll('.menu-nav a').forEach(a=>{
     a.addEventListener('click', ()=>{
       document.getElementById('menuOverlay')?.classList.remove('open');
     });
   });
 
-  // client hotspots - clicking (or Enter/Space) one reveals that client's
-  // card (same content, same Photos/Videos modals as always)
-  (function(){
-    const overlay = document.getElementById('clientRevealOverlay');
-    const closeBtn = document.getElementById('clientRevealClose');
-    function openClient(id){
-      overlay.querySelectorAll('.project-card').forEach(card=>{
-        card.classList.toggle('active', card.dataset.project === id);
-      });
-      overlay.classList.add('open');
-    }
-    function closeClient(){ overlay.classList.remove('open'); }
-    document.querySelectorAll('.hotspot').forEach(h=>{
-      h.addEventListener('click', ()=> openClient(h.dataset.client));
-      h.addEventListener('keydown', e=>{
-        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openClient(h.dataset.client); }
-      });
+  // client reveal - shared by both the 3D world tiles below and could be
+  // reused by any other trigger; shows the matching .project-card (same
+  // content and Photos/Videos modals as always) centred in an overlay.
+  const clientOverlay = document.getElementById('clientRevealOverlay');
+  function openClient(id){
+    clientOverlay.querySelectorAll('.project-card').forEach(card=>{
+      card.classList.toggle('active', card.dataset.project === id);
     });
-    closeBtn.addEventListener('click', closeClient);
-    overlay.addEventListener('click', e=>{ if(e.target === overlay) closeClient(); });
-    document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeClient(); });
+    clientOverlay.classList.add('open');
+  }
+  function closeClient(){ clientOverlay.classList.remove('open'); }
+  document.getElementById('clientRevealClose').addEventListener('click', closeClient);
+  clientOverlay.addEventListener('click', e=>{ if(e.target === clientOverlay) closeClient(); });
+  document.addEventListener('keydown', e=>{ if(e.key === 'Escape') closeClient(); });
+</script>
+<script>
+  // ---- S World 3D scene: a faint wireframe sphere, the S monogram at the
+  // core, and three client tiles orbiting it. Drag to spin (with inertia
+  // and idle auto-rotate, same feel as the Home hero's S), hover a tile to
+  // lift it, click a tile to open that client via openClient() above. ----
+  (function(){
+    const CLIENTS = [
+      { id:'amano',   name:'AMANO Group',          photo:'https://thesawyeredit.com/photos/amano/amano-p1.jpg' },
+      { id:'aubaine', name:'Aubaine',               photo:'https://thesawyeredit.com/photos/aubaine/aubaine-p1.jpg' },
+      { id:'pubs',    name:'London Pub Portfolio',  photo:'https://thesawyeredit.com/photos/pubs/pubs-p1.jpg' },
+    ];
+
+    const canvas = document.getElementById('worldCanvas');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.1, 100);
+    camera.position.z = 7.5;
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+
+    // faint wireframe sphere - the "world" grid
+    const wireMat = new THREE.MeshBasicMaterial({ color:0xe0a045, wireframe:true, transparent:true, opacity:.12 });
+    scene.add(new THREE.Mesh(new THREE.SphereGeometry(3.1, 22, 14), wireMat));
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    // S monogram at the core, always facing the camera
+    const sSprite = new THREE.Sprite(new THREE.SpriteMaterial({ transparent:true }));
+    sSprite.scale.set(2.3, 2.3, 1);
+    group.add(sSprite);
+    const loader = new THREE.TextureLoader();
+    loader.crossOrigin = 'anonymous';
+    loader.load('https://thesawyeredit.com/images/s-original.png', tex=>{
+      sSprite.material.map = tex; sSprite.material.needsUpdate = true;
+    });
+
+    // three client tiles, evenly spaced around a ring
+    const tiles = [];
+    CLIENTS.forEach((c, i)=>{
+      const angle = (i / CLIENTS.length) * Math.PI * 2;
+      const radius = 3.4;
+      const geo = new THREE.PlaneGeometry(1.5, 1.5);
+      const mat = new THREE.MeshBasicMaterial({ color:0x222222, transparent:true, opacity:.98 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(Math.cos(angle)*radius, Math.sin(angle*0.6)*0.6, Math.sin(angle)*radius);
+      mesh.userData = { clientId:c.id, baseScale:1 };
+      group.add(mesh);
+      tiles.push(mesh);
+      loader.load(c.photo, tex=>{ mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; });
+    });
+
+    addEventListener('resize', ()=>{
+      camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+
+    // drag-to-rotate + inertia + idle auto-spin, same easing philosophy
+    // used for the CSS-driven S on the Home hero
+    let dragging=false, prevX=0, prevY=0, velX=0, velY=0;
+    const raycaster = new THREE.Raycaster();
+    const mouseNDC = new THREE.Vector2(-10,-10);
+    let hovered = null;
+    const cursorEl = document.getElementById('cursor');
+
+    canvas.addEventListener('pointerdown', e=>{ dragging = true; prevX = e.clientX; prevY = e.clientY; });
+    addEventListener('pointermove', e=>{
+      mouseNDC.x = (e.clientX/innerWidth)*2-1;
+      mouseNDC.y = -(e.clientY/innerHeight)*2+1;
+      if(dragging){
+        const dx = e.clientX-prevX, dy = e.clientY-prevY;
+        prevX = e.clientX; prevY = e.clientY;
+        velY = dx*0.006; velX = dy*0.006;
+        group.rotation.y += velY; group.rotation.x += velX;
+      }
+    });
+    addEventListener('pointerup', ()=> dragging=false);
+    addEventListener('pointerleave', ()=> dragging=false);
+
+    canvas.addEventListener('click', ()=>{
+      raycaster.setFromCamera(mouseNDC, camera);
+      const hit = raycaster.intersectObjects(tiles)[0];
+      if(hit) openClient(hit.object.userData.clientId);
+    });
+
+    function animate(){
+      requestAnimationFrame(animate);
+      if(!dragging){
+        velX *= 0.94; velY *= 0.94;
+        group.rotation.y += velY + 0.0014;
+        group.rotation.x += velX;
+        group.rotation.x = Math.max(-0.5, Math.min(0.5, group.rotation.x));
+      }
+      raycaster.setFromCamera(mouseNDC, camera);
+      const hit = raycaster.intersectObjects(tiles)[0];
+      if(hit && hit.object !== hovered){
+        if(hovered) hovered.scale.set(1,1,1);
+        hovered = hit.object; hovered.scale.set(1.15,1.15,1);
+        if(cursorEl) cursorEl.classList.add('grow');
+      } else if(!hit && hovered){
+        hovered.scale.set(1,1,1); hovered = null;
+        if(cursorEl) cursorEl.classList.remove('grow');
+      }
+      sSprite.lookAt(camera.position);
+      renderer.render(scene, camera);
+    }
+    animate();
   })();
 </script>
 <script>
@@ -342,6 +374,19 @@
     },
   };
 
+  // scroll-reveal for gallery content, same fade-up-and-in used across the
+  // rest of the site (.reveal/.reveal.in) - each tile gets a small staggered
+  // delay by grid position so the gallery cascades in as you scroll through
+  // it, instead of the whole grid just appearing at once.
+  const galleryRevealIO = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); galleryRevealIO.unobserve(e.target); } });
+  },{threshold:.12});
+  function revealGalleryItem(el, i){
+    el.classList.add('reveal');
+    el.style.transitionDelay = Math.min(i,10) * 55 + 'ms';
+    galleryRevealIO.observe(el);
+  }
+
   function videoCard(innerEl){
     const card = document.createElement('div');
     card.className = 'video-card';
@@ -350,7 +395,7 @@
   }
   function fillVideoGrid(container, videos){
     if(videos && videos.length){
-      videos.forEach(src=>{
+      videos.forEach((src, i)=>{
         const posterSrc = src.replace('videos/', 'images/video-posters/').replace(/\.mp4$/, '.jpg');
         const wrap = document.createElement('div');
         wrap.className = 'phone-poster';
@@ -366,13 +411,17 @@
           wrap.replaceWith(v);
           v.play().catch(()=>{});
         });
-        container.appendChild(videoCard(wrap));
+        const card = videoCard(wrap);
+        revealGalleryItem(card, i);
+        container.appendChild(card);
       });
     } else {
       for(let i=0;i<3;i++){
         const slot = document.createElement('div');
         slot.className = 'video-slot'; slot.textContent = 'Video coming soon';
-        container.appendChild(videoCard(slot));
+        const card = videoCard(slot);
+        revealGalleryItem(card, i);
+        container.appendChild(card);
       }
     }
   }
@@ -404,11 +453,13 @@
   }
   function fillPhotoGrid(container, photos){
     if(photos && photos.length){
-      photos.forEach(src=>{
+      photos.forEach((src, i)=>{
         const fig = document.createElement('a');
         fig.href = src; fig.target = '_blank'; fig.rel = 'noopener'; fig.className = 'photo-item';
         const img = document.createElement('img'); img.src = src; img.loading = 'lazy'; img.alt = '';
-        fig.appendChild(img); container.appendChild(fig);
+        fig.appendChild(img);
+        revealGalleryItem(fig, i);
+        container.appendChild(fig);
       });
     } else {
       const slot = document.createElement('div'); slot.className = 'video-slot'; slot.textContent = 'Photos coming soon';

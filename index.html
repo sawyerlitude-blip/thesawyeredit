@@ -41,7 +41,7 @@
 <div class="cursor" id="cursor"></div>
 
 <nav>
-  <a href="#heroA" class="mark">
+  <a href="index.html" class="mark" data-transition data-label="Loading Home —">
     <div class="mark-badge">S</div>
     <div class="mark-text">THE SAWYER EDIT</div>
   </a>
@@ -56,10 +56,10 @@
     <div>
       <button class="menu-close" id="menuCloseBtn">✕</button>
       <nav class="menu-nav">
-        <a href="#heroA" class="current"><span class="num">01</span>Home</a>
-        <a href="world.html"><span class="num">02</span>Work</a>
-        <a href="#about"><span class="num">03</span>About</a>
-        <a href="#contact"><span class="num">04</span>Contact</a>
+        <a href="index.html" class="current"><span class="num">01</span>Home</a>
+        <a href="world.html" data-transition data-label="Loading S World —"><span class="num">02</span>Work</a>
+        <a href="about.html" data-transition data-label="Loading About —"><span class="num">03</span>About</a>
+        <a href="contact.html" data-transition data-label="Loading Contact —"><span class="num">04</span>Contact</a>
       </nav>
     </div>
     <div class="menu-footer">
@@ -68,6 +68,8 @@
     </div>
   </div>
 </div>
+
+<div class="wipe" id="wipe">Loading —</div>
 
 <section class="hero" id="heroA">
   <div class="hero-a-top">
@@ -82,7 +84,7 @@
     </div>
   </div>
   <div class="hero-a-inner">
-    <a href="world.html" class="pill-btn" id="viewWorkBtn">
+    <a href="world.html" class="pill-btn" data-transition data-label="Loading S World —" id="viewWorkBtn">
       <span class="txt"><span>Explore S World</span><span class="clone">Explore S World</span></span>
       <span class="arrow">→</span>
     </a>
@@ -97,125 +99,7 @@
   </div>
 </section>
 
-<section class="page-head" id="about">
-  <div><h1>The <em>creator</em></h1></div>
-  <p>Content that gets a venue booked out, a product noticed, and a feed worth following.</p>
-</section>
-
-<section class="bio" id="bio">
-  <div class="bio-grid">
-    <div class="lead reveal">
-      A content creator and social media manager working with hospitality brands — impactful content and storytelling that turns venues into <span class="hl">stories people stop for</span>, built on consistency across Instagram, TikTok and beyond.
-      <div class="stats">
-        <div class="stat"><div class="n">1</div><div class="l">Active client - AMANO Group</div></div>
-        <div class="stat"><div class="n">14</div><div class="l">Years in hospitality</div></div>
-        <div class="stat"><div class="n">3</div><div class="l">Years in social media &amp; marketing management</div></div>
-        <div class="stat"><div class="n">5</div><div class="l">Years in content creation</div></div>
-      </div>
-      <p class="organic-note">Growth figures shown are organic. Paid campaigns are run in collaboration with a paid media agency.</p>
-    </div>
-    <div class="bio-side reveal">
-      <p>Currently working with <strong>AMANO Group</strong>, a hotel chain with a rooftop bar overlooking London. Past work spans a <strong>modern French restaurant chain</strong> and a group of three very different London pubs — each with its own crowd, its own rhythm, and its own story to film.</p>
-      <br>
-      <p>Every project starts on location: real venues, real teams, real product. The focus is always the same — impactful content, storytelling that lands, and consistency that keeps a brand showing up in the feed, not just interrupting it.</p>
-    </div>
-  </div>
-
-  <div class="journey reveal">
-    <div class="journey-label">The journey so far</div>
-    <p class="journey-text">Before the reels and rooftop bars, there was an actual bar. I cut my teeth managing bars across the French Riviera and the Alps. In Saint-Tropez, Courchevel, then Deauville in Normandy, before heading behind the bar on a five-star cruise ship. Then I worked in Melbourne, Australia. Back in London, hospitality management at Aubaine Mayfair turned into a move behind the camera. I spent two years leading social media and events for Aubaine. I am currently the Social Media &amp; Marketing Manager at AMANO Covent Garden. My journey so far spans fourteen years, four countries, with one throughline — understanding what makes people show up, stay a while, and come back.</p>
-    <div class="journey-chips">
-      <span>Saint-Tropez &amp; Courchevel, France</span>
-      <span>Deauville, Normandy</span>
-      <span>5★ Cruise Ship</span>
-      <span>Melbourne, Australia</span>
-      <span>London, UK</span>
-    </div>
-    <div class="journey-bubble">
-      <div class="journey-bubble-item">
-        <div class="creator-bubble-wrap" aria-hidden="true">
-          <div class="creator-bubble">
-            <div class="creator-track">
-              <img src="https://thesawyeredit.com/images/creator/creator-1.jpg" alt="">
-              <img src="https://thesawyeredit.com/images/creator/creator-2.jpg" alt="">
-              <img src="https://thesawyeredit.com/images/creator/creator-3.jpg" alt="">
-              <img src="https://thesawyeredit.com/images/creator/creator-4.jpg" alt="">
-              <img src="https://thesawyeredit.com/images/creator/creator-5.jpg" alt="">
-            </div>
-          </div>
-        </div>
-        <div class="journey-bubble-caption">Back in the days</div>
-      </div>
-      <div class="journey-bubble-item">
-        <a class="ig-bubble-wrap" href="https://www.instagram.com/thesawyeredit/" target="_blank" rel="noopener" aria-label="Follow Sawyer on Instagram - lifestyle and travel">
-          <div class="ig-bubble">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <defs>
-                <linearGradient id="igGrad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stop-color="#e0a045"/>
-                  <stop offset="35%" stop-color="#c9705a"/>
-                  <stop offset="68%" stop-color="#8b50b1"/>
-                  <stop offset="100%" stop-color="#1d928d"/>
-                </linearGradient>
-              </defs>
-              <rect x="2" y="2" width="20" height="20" rx="6" stroke="url(#igGrad)" stroke-width="1.7"/>
-              <circle cx="12" cy="12" r="4.3" stroke="url(#igGrad)" stroke-width="1.7"/>
-              <circle cx="17.3" cy="6.7" r="1.15" fill="url(#igGrad)"/>
-            </svg>
-          </div>
-        </a>
-        <div class="journey-bubble-caption">Lifestyle &amp; travel</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="mission" id="mission">
-  <div class="mission-label reveal">Mission &amp; Vision</div>
-  <div class="mission-statement reveal">
-    Turning ordinary moments into <span class="hl">content people actually stop for.</span>
-  </div>
-  <p class="vision-statement reveal">A brand's feed should feel like a place worth following — not an ad interrupting someone's day.</p>
-</section>
-
-<section class="cta" id="contact">
-  <h2>Got a brand<br>worth <span class="hl">filming</span>?</h2>
-  <p class="cta-sub">Social media management and content creation for hotels, restaurants and pubs across London. Let's talk about growing your community.</p>
-  <a class="cta-link" href="mailto:thesawyeredit@gmail.com">thesawyeredit@gmail.com ↗</a>
-</section>
-
-<footer>
-  <div class="footer-tools">
-    <div class="footer-tools-label">Software I use</div>
-    <div class="footer-tools-chips">
-      <span>Premiere Pro</span>
-      <span>Photoshop</span>
-      <span>Lightroom</span>
-      <span>Adobe Creative Cloud</span>
-      <span>Canva</span>
-      <span>Higgsfield AI</span>
-      <span>&amp; more</span>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <span>© 2026 The Sawyer Edit</span>
-    <span>thesawyeredit@gmail.com</span>
-  </div>
-</footer>
-
 <script src="assets/app.js"></script>
-<script>
-  // "Explore S World" is a real page link now (it goes to world.html), so
-  // no scroll-unlock is needed for it. The remaining anchors on this page
-  // (menu links to #heroA/#about/#contact) still need the landing scroll
-  // lock removed and the slide-in menu closed so the jump actually happens.
-  document.querySelectorAll('.menu-nav a[href^="#"], a.mark[href^="#"]').forEach(a=>{
-    a.addEventListener('click', ()=>{
-      document.body.classList.remove('scroll-locked');
-      document.getElementById('menuOverlay')?.classList.remove('open');
-    });
-  });
-</script>
 <script>
   // S monogram drag-to-tilt
   (function(){
