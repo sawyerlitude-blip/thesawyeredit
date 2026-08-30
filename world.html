@@ -63,7 +63,8 @@
 
 <div class="world-hero">
   <canvas id="worldCanvas"></canvas>
-  <video class="world-s-video" id="worldSVideo" src="assets/videos/s-liquify.mp4" aria-label="S monogram, glossy liquid chrome colors blending together" muted playsinline preload="auto"></video>
+  <video id="worldSVideoSrc" src="assets/videos/s-liquify.mp4" muted playsinline preload="auto" style="display:none"></video>
+  <canvas class="world-s-video" id="worldSVideo" aria-label="S monogram, glossy liquid chrome colors blending together"></canvas>
   <section class="page-head" id="work">
     <div>
       <h1>S <em>World</em></h1>
@@ -350,32 +351,47 @@
     const tileLabel = document.getElementById('worldTileLabel');
     const labelPos = new THREE.Vector3();
 
-    // S monogram video - same asset and boomerang-loop / drag-scrub idea as
-    // the Home hero, but scrubbed by the exact same drag gesture that spins
-    // the sphere here, so one drag does both at once
-    const sVideo = document.getElementById('worldSVideo');
-    let sDuration = 0, sReversing = false, sLastT = 0;
-    function sGoForward(){ sReversing = false; sVideo.play().catch(()=>{}); }
-    function sReverseStep(now){
-      if(!sReversing) return;
-      if(!sLastT) sLastT = now;
-      const dt = (now - sLastT) / 1000;
-      sLastT = now;
-      let t = sVideo.currentTime - dt;
-      if(t <= 0){ t = 0; requestAnimationFrame(()=>sGoForward()); sReversing = false; }
-      sVideo.currentTime = t;
-      if(sReversing) requestAnimationFrame(sReverseStep);
+    // S monogram - same real AI-rendered video as the Home hero, drawn onto
+    // a canvas so the black background and the clip's own bottom
+    // floor-shadow can be keyed out to real per-pixel transparency (a CSS
+    // mix-blend-mode was tried first but this element sits in an isolated
+    // stacking context and blending couldn't reach the real page background
+    // behind it). No autoplay/auto-rotate - static until dragged, scrubbed
+    // by the exact same drag gesture that spins the sphere, so one drag
+    // does both at once.
+    const sVideo = document.getElementById('worldSVideoSrc');
+    const sCanvas = document.getElementById('worldSVideo');
+    const sCtx = sCanvas ? sCanvas.getContext('2d', { willReadFrequently: true }) : null;
+    const S_CW = 380, S_CH = Math.round(S_CW * 1.245);
+    if(sCanvas){ sCanvas.width = S_CW; sCanvas.height = S_CH; }
+    function sDrawFrame(){
+      if(!sCtx || !sVideo.videoWidth) return;
+      sCtx.clearRect(0, 0, S_CW, S_CH);
+      sCtx.drawImage(sVideo, 0, 0, S_CW, S_CH);
+      const img = sCtx.getImageData(0, 0, S_CW, S_CH);
+      const d = img.data;
+      for(let y = 0; y < S_CH; y++){
+        const frac = y / S_CH;
+        const bottomFade = frac < 0.78 ? 1 : Math.max(0, 1 - (frac - 0.78) / 0.14);
+        const rowStart = y * S_CW * 4;
+        for(let x = 0; x < S_CW; x++){
+          const i = rowStart + x * 4;
+          const lum = (d[i] + d[i+1] + d[i+2]) / 3;
+          let a = d[i+3];
+          if(lum < 20) a = 0;
+          else if(lum < 46) a = Math.round(a * (lum - 20) / 26);
+          d[i+3] = Math.round(a * bottomFade);
+        }
+      }
+      sCtx.putImageData(img, 0, 0);
     }
-    function sGoReverse(){ sVideo.pause(); sReversing = true; sLastT = 0; requestAnimationFrame(sReverseStep); }
+    let sDuration = 0;
     if(sVideo){
-      sVideo.addEventListener('loadedmetadata', ()=>{ sDuration = sVideo.duration || 0; sGoForward(); });
-      sVideo.addEventListener('ended', ()=>{ if(!dragging) sGoReverse(); });
+      sVideo.addEventListener('loadeddata', ()=>{ sDuration = sVideo.duration || 0; sDrawFrame(); });
+      sVideo.addEventListener('seeked', sDrawFrame);
     }
 
-    canvas.addEventListener('pointerdown', e=>{
-      dragging = true; prevX = e.clientX; prevY = e.clientY;
-      if(sVideo && sDuration){ sReversing = false; sVideo.pause(); }
-    });
+    canvas.addEventListener('pointerdown', e=>{ dragging = true; prevX = e.clientX; prevY = e.clientY; });
     addEventListener('pointermove', e=>{
       mouseNDC.x = (e.clientX/innerWidth)*2-1;
       mouseNDC.y = -(e.clientY/innerHeight)*2+1;
@@ -386,17 +402,12 @@
         velY = dx*0.006; velX = dy*0.006;
         group.rotation.y += velY; group.rotation.x += velX;
         if(sVideo && sDuration){
-          let t = sVideo.currentTime + dx * 0.006;
+          const t = sVideo.currentTime + dx * 0.008;
           sVideo.currentTime = Math.max(0, Math.min(sDuration, t));
         }
       }
     });
-    addEventListener('pointerup', ()=>{
-      dragging=false;
-      if(sVideo && sDuration){
-        if(sVideo.currentTime >= sDuration - 0.05) sGoReverse(); else sGoForward();
-      }
-    });
+    addEventListener('pointerup', ()=> dragging=false);
     addEventListener('pointerleave', ()=> dragging=false);
 
     // NDC is computed straight from the click event itself, not from the
