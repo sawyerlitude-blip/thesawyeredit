@@ -169,20 +169,20 @@
     const frontMat = new THREE.MeshPhysicalMaterial({
       map: universeTexture, transparent: true, opacity: 0.5, side: THREE.DoubleSide,
       roughness: 0.15, metalness: 0, clearcoat: 0.6, clearcoatRoughness: 0.2,
-      emissive: 0x140f28, emissiveIntensity: 0.3
+      emissive: 0x140f28, emissiveIntensity: 0.3, depthWrite: false
     });
     const sideMat = new THREE.MeshPhysicalMaterial({
       map: universeTexture, transparent: true, opacity: 0.4, side: THREE.DoubleSide,
       color: 0xcfcbe0, roughness: 0.2, metalness: 0, clearcoat: 0.5, clearcoatRoughness: 0.25,
-      emissive: 0x140f28, emissiveIntensity: 0.25
+      emissive: 0x140f28, emissiveIntensity: 0.25, depthWrite: false
     });
     const mesh = new THREE.Mesh(geo, [frontMat, sideMat]);
+    mesh.renderOrder = 1;
     const group = new THREE.Group();
     group.add(mesh);
     mesh.position.set(0, 0, -DEPTH/2);
     scene.add(group);
     group.scale.set(1.28, 1.28, 1.28);
-    group.renderOrder = 1;
 
     // real 3D butterflies, sampled to sit inside the letter's actual
     // silhouette (point-in-polygon, not just its bounding box) and at
@@ -222,8 +222,8 @@
       group.add(sprite);
       butterflies.push({
         sprite, cx, cy, zc: sprite.position.z,
-        rx: 12 + Math.random() * 14, ry: 11 + Math.random() * 13, rz: DEPTH * 0.32,
-        speed: 0.4 + Math.random() * 0.3, phase: Math.random() * Math.PI * 2, phase2: Math.random() * Math.PI * 2,
+        rx: 14 + Math.random() * 16, ry: 13 + Math.random() * 15, rz: DEPTH * 0.4,
+        speed: 1.1 + Math.random() * 0.7, phase: Math.random() * Math.PI * 2, phase2: Math.random() * Math.PI * 2,
         baseSize: size, flap: Math.random() * Math.PI * 2, flapSpeed: 0.3 + Math.random() * 0.16
       });
     }
