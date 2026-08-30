@@ -202,6 +202,12 @@ nav{
   perspective:1100px;cursor:none;touch-action:none;
 }
 .hero-s-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+.hero-s-video{
+  position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;
+  object-fit:contain;mix-blend-mode:screen;
+  -webkit-mask-image:linear-gradient(to bottom, #000 0%, #000 88%, transparent 98%);
+  mask-image:linear-gradient(to bottom, #000 0%, #000 88%, transparent 98%);
+}
 .hero-s-stage::before{
   content:'';position:absolute;inset:-10%;z-index:-1;border-radius:50%;
   background:radial-gradient(circle, rgba(255,120,90,.20) 0%, rgba(230,60,150,.14) 32%, rgba(70,110,230,.12) 58%, transparent 75%);
@@ -264,6 +270,16 @@ nav{
    here as a page-scroll attempt, which is what made rotating the scene feel
    sticky/fighty on phones */
 #worldCanvas{position:absolute;inset:0;z-index:0;touch-action:none;}
+/* the S monogram video sits centered over the sphere scene (dead center of
+   the orbit, same spot the old 3D monogram occupied) - pointer-events:none
+   so dragging still hits the canvas underneath for the tile-orbit rotation */
+.world-s-video{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1;
+  width:min(30vw,34vh);max-width:280px;pointer-events:none;
+  object-fit:contain;mix-blend-mode:screen;
+  -webkit-mask-image:linear-gradient(to bottom, #000 0%, #000 88%, transparent 98%);
+  mask-image:linear-gradient(to bottom, #000 0%, #000 88%, transparent 98%);
+}
 .world-scene-hint{
   position:absolute;bottom:30px;left:0;right:0;z-index:2;text-align:center;pointer-events:none;
   font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;
