@@ -298,38 +298,58 @@
     // Home hero, instead of a hand-built 3D shape - so no extruded geometry,
     // lights or S-shape data are needed here any more.
 
-    // three client tiles, evenly spaced around a ring
+    // three client tiles, each genuinely orbiting the S at its own core - not
+    // just glued to fixed points on the sphere's surface (which only ever
+    // moved when you dragged the whole scene), but each on its own pivot with
+    // its own tilt and its own speed, continuously revolving on its own,
+    // exactly like planets on independent orbits around a sun - drag still
+    // spins the whole system to look at it from another angle on top of that
     const loader = new THREE.TextureLoader();
     loader.crossOrigin = 'anonymous';
     const tiles = [];
+    const orbits = [];
     CLIENTS.forEach((c, i)=>{
-      const angle = (i / CLIENTS.length) * Math.PI * 2;
       // tighter ring + smaller badges on phones - the same radius felt
       // oversized and cramped together on a narrow screen
       const radius = isSmallScreen ? 2.5 : 3.4;
       // circular badge tiles (client logos are square black-background images;
       // a circle geometry crops them to a clean disc instead of a square card).
       const R = isSmallScreen ? 0.4 : 0.55;
+
+      // each client gets its own orbital plane - a different tilt (inclination)
+      // and a different orientation of that tilt, so the three orbits cross
+      // each other at different angles instead of all sitting on one flat
+      // ring, plus a distinct speed so they drift in and out of sync rather
+      // than moving in lockstep
+      const pivot = new THREE.Object3D();
+      pivot.rotation.x = 0.3 + i * 0.22;
+      pivot.rotation.z = i * 2.05;
+      pivot.rotation.y = (i / CLIENTS.length) * Math.PI * 2;
+      group.add(pivot);
+      const orbitSpeed = 0.0026 + i * 0.0011;
+      orbits.push({ pivot, speed: orbitSpeed });
+
       const geo = new THREE.CircleGeometry(R, 48);
       const mat = new THREE.MeshBasicMaterial({ color:0x0a0908, transparent:true, opacity:.98 });
-      const pos = new THREE.Vector3(Math.cos(angle)*radius, Math.sin(angle*0.6)*0.6, Math.sin(angle)*radius);
 
-      // front-facing badge
+      // front-facing badge, offset out along its pivot's local X axis - as
+      // the pivot spins on its tilted axis every frame, this traces out a
+      // real inclined orbit path around the centre
       const front = new THREE.Mesh(geo, mat);
-      front.position.copy(pos);
+      front.position.set(radius, 0, 0);
       front.userData = { clientId:c.id, name:c.name };
-      group.add(front);
+      pivot.add(front);
       tiles.push(front);
 
       // a second badge rotated 180° behind it, sharing the same material -
-      // so whichever side of the sphere is facing the camera as it spins,
-      // you still see the logo the right way round instead of it vanishing
-      // (single-sided planes are invisible from behind) or mirroring.
+      // so whichever side of the orbit is facing the camera, you still see
+      // the logo the right way round instead of it vanishing (single-sided
+      // planes are invisible from behind) or mirroring.
       const back = new THREE.Mesh(geo, mat);
-      back.position.set(pos.x, pos.y, pos.z - 0.006);
+      back.position.set(radius, 0, -0.006);
       back.rotation.y = Math.PI;
       back.userData = front.userData;
-      group.add(back);
+      pivot.add(back);
       tiles.push(back);
 
       loader.load(c.photo, tex=>{ mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; });
@@ -340,8 +360,8 @@
         new THREE.RingGeometry(R, R + 0.08, 48),
         new THREE.MeshBasicMaterial({ color:0xe0a045, transparent:true, opacity:.6, side:THREE.DoubleSide })
       );
-      ring.position.set(pos.x, pos.y, pos.z - 0.01);
-      group.add(ring);
+      ring.position.set(radius, 0, -0.01);
+      pivot.add(ring);
       front.userData.ring = ring;
       front.userData.pair = [front, back];
     });
@@ -457,6 +477,10 @@
       camera.position.x = camTX;
       camera.position.y = camTY;
       camera.lookAt(0, 0, 0);
+      // each client keeps revolving around the S on its own tilted orbit at
+      // its own speed, continuously - independent of dragging/idle-spin,
+      // which just changes the angle you're viewing the whole system from
+      orbits.forEach(o=>{ o.pivot.rotation.y += o.speed; });
       if(!dragging){
         velX *= 0.94; velY *= 0.94;
         group.rotation.y += velY + 0.0014;
