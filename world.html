@@ -63,7 +63,7 @@
 
 <div class="world-hero">
   <canvas id="worldCanvas"></canvas>
-  <video id="worldSVideoSrc" src="assets/videos/s-liquify.mp4" muted playsinline preload="auto" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none;left:-9999px;"></video>
+  <video id="worldSVideoSrc" src="assets/videos/s-liquify-v2.mp4" muted playsinline preload="auto" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none;left:-9999px;"></video>
   <canvas class="world-s-video" id="worldSVideo" aria-label="S monogram, glossy liquid chrome colors blending together"></canvas>
   <section class="page-head" id="work">
     <div>
@@ -383,33 +383,33 @@
       sCtx.drawImage(sVideo, 0, 0, S_CW, S_CH);
       const img = sCtx.getImageData(0, 0, S_CW, S_CH);
       const d = img.data;
-      for(let y = 0; y < S_CH; y++){
-        const frac = y / S_CH;
-        // gate the floor-shadow fade by saturation, not just row position - the
-        // shadow is a pale grey blob, so only desaturated pixels down here get
-        // faded, while the letter's own vivid colour stays fully visible even
-        // on frames where the liquid shape dips lower while dragging
-        const bottomFade = frac < 0.74 ? 1 : Math.max(0, 1 - (frac - 0.74) / 0.20);
-        const rowStart = y * S_CW * 4;
-        for(let x = 0; x < S_CW; x++){
-          const i = rowStart + x * 4;
-          const r = d[i], g = d[i+1], b = d[i+2];
-          const lum = (r + g + b) / 3;
-          let a = d[i+3];
-          if(lum < 20) a = 0;
-          else if(lum < 46) a = Math.round(a * (lum - 20) / 26);
-          const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
-          const sat = mx <= 0 ? 0 : (mx - mn) / mx;
-          if(sat < 0.16) a = Math.round(a * bottomFade);
-          d[i+3] = a;
-        }
+      // only the true black background gets keyed out - no row/saturation
+      // bottom fade any more, so the letter's own contour stays fully
+      // visible all the way to its true bottom edge on every dragged frame
+      for(let i = 0; i < d.length; i += 4){
+        const lum = (d[i] + d[i+1] + d[i+2]) / 3;
+        if(lum < 20) d[i+3] = 0;
+        else if(lum < 46) d[i+3] = Math.round(d[i+3] * (lum - 20) / 26);
       }
       sCtx.putImageData(img, 0, 0);
     }
     let sDuration = 0;
+    // the clip is encoded with every frame as its own keyframe so any
+    // timestamp seeks instantly; seeks are coalesced so a fast drag never
+    // queues up and stutters (same fix applied to the Home hero's S)
+    let sSeeking = false, sPendingT = null;
+    function sRequestSeek(t){
+      if(sSeeking){ sPendingT = t; return; }
+      sSeeking = true;
+      sVideo.currentTime = t;
+    }
     if(sVideo){
       sVideo.addEventListener('loadeddata', ()=>{ sDuration = sVideo.duration || 0; sDrawFrame(); });
-      sVideo.addEventListener('seeked', sDrawFrame);
+      sVideo.addEventListener('seeked', ()=>{
+        sDrawFrame();
+        if(sPendingT !== null){ const t = sPendingT; sPendingT = null; sVideo.currentTime = t; }
+        else { sSeeking = false; }
+      });
     }
 
     canvas.addEventListener('pointerdown', e=>{ dragging = true; prevX = e.clientX; prevY = e.clientY; });
@@ -423,8 +423,8 @@
         velY = dx*0.006; velX = dy*0.006;
         group.rotation.y += velY; group.rotation.x += velX;
         if(sVideo && sDuration){
-          const t = sVideo.currentTime + dx * 0.008;
-          sVideo.currentTime = Math.max(0, Math.min(sDuration, t));
+          const t = (sPendingT !== null ? sPendingT : sVideo.currentTime) + dx * 0.008;
+          sRequestSeek(Math.max(0, Math.min(sDuration, t)));
         }
       }
     });
