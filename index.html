@@ -168,19 +168,14 @@
     liquifyTexture.wrapT = THREE.ClampToEdgeWrapping;
     liquifyTexture.center.set(0.5, 0.5);
 
-    // solid liquid-chrome letter, fully opaque - it's not a glass shell with
-    // anything floating inside anymore, so it should read as solid poured
-    // color, not translucent. Opaque also stops the pale page background from
-    // bleeding through / washing it out to white as it's rotated at an angle,
-    // which is what transparent + a bright clearcoat rim was doing before
-    const frontMat = new THREE.MeshPhysicalMaterial({
-      map: liquifyTexture, side: THREE.DoubleSide,
-      roughness: 0.28, metalness: 0.1, clearcoat: 0.4, clearcoatRoughness: 0.35
-    });
-    const sideMat = new THREE.MeshPhysicalMaterial({
-      map: liquifyTexture, side: THREE.DoubleSide,
-      roughness: 0.32, metalness: 0.1, clearcoat: 0.35, clearcoatRoughness: 0.4
-    });
+    // unlit material - MeshBasicMaterial ignores scene lighting entirely, so
+    // the liquify color reads exactly the same regardless of viewing angle or
+    // which face is catching the key light. A physically-lit material will
+    // always look brighter/darker on different faces as it rotates since
+    // that's just how directional lighting works; unlit is the only way to
+    // guarantee identical color everywhere
+    const frontMat = new THREE.MeshBasicMaterial({ map: liquifyTexture, side: THREE.DoubleSide });
+    const sideMat = new THREE.MeshBasicMaterial({ map: liquifyTexture, side: THREE.DoubleSide, color: 0xdedede });
     const mesh = new THREE.Mesh(geo, [frontMat, sideMat]);
     mesh.renderOrder = 1;
     const group = new THREE.Group();

@@ -320,17 +320,11 @@
     sLiquifyTexture.wrapT = THREE.ClampToEdgeWrapping;
     sLiquifyTexture.center.set(0.5, 0.5);
 
-    // solid liquid-chrome letter, fully opaque - no transparency, so the
-    // pale page background can't bleed through / wash it out to white as it
-    // spins, which is what a transparent glass-style shell was doing before
-    const sFrontMat = new THREE.MeshPhysicalMaterial({
-      map: sLiquifyTexture, side: THREE.DoubleSide,
-      roughness: 0.28, metalness: 0.1, clearcoat: 0.4, clearcoatRoughness: 0.35
-    });
-    const sSideMat = new THREE.MeshPhysicalMaterial({
-      map: sLiquifyTexture, side: THREE.DoubleSide,
-      roughness: 0.32, metalness: 0.1, clearcoat: 0.35, clearcoatRoughness: 0.4
-    });
+    // unlit material - ignores scene lighting entirely, so the liquify color
+    // reads identically regardless of viewing angle or which face is
+    // catching the key light, instead of looking brighter/darker as it spins
+    const sFrontMat = new THREE.MeshBasicMaterial({ map: sLiquifyTexture, side: THREE.DoubleSide });
+    const sSideMat = new THREE.MeshBasicMaterial({ map: sLiquifyTexture, side: THREE.DoubleSide, color: 0xdedede });
     const sMesh = new THREE.Mesh(sGeo, [sFrontMat, sSideMat]);
     sMesh.position.set(0, 0, -S_DEPTH/2);
     sMesh.renderOrder = 1;
