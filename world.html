@@ -330,9 +330,10 @@
         r * Math.cos(phi)
       );
     }
-    // same sprite/texture the ambient background swarm uses - one shared
-    // material for every butterfly across every planet
-    const butterflyTex = loader.load('assets/butterfly.png');
+    // a gold duotone version of the same butterfly sprite (same shape, its
+    // colours remapped to the site's own gold accent) - reads better against
+    // the planet's own dark blue glass than the multicolour ambient version
+    const butterflyTex = loader.load('assets/butterfly-gold.png');
     const butterflyMat = new THREE.SpriteMaterial({ map: butterflyTex, transparent:true, depthWrite:false });
     const BUTTERFLY_ASPECT = 324 / 369;
     // a real orrery/solar-system layout - each client sits at its own
@@ -392,13 +393,17 @@
       const orbitSpeed = SHARED_ORBIT_SPEED * orbitDir;
       const spinSpeed = SHARED_SPIN_SPEED;
 
-      // a real 3D ball, not a flat cut-out circle - a translucent glassy
-      // shell (no logo on it any more - the client name shows on hover via
-      // the floating tile label instead, see the hover block below)
+      // a real 3D ball, not a flat cut-out circle - a translucent, dark blue
+      // glassy shell (no logo on it any more - the client name shows on
+      // hover via the floating tile label instead, see the hover block
+      // below). The emissive tint keeps that dark blue reading consistently
+      // on every side, not just wherever the directional light happens to
+      // land, while staying transparent enough to see the butterfly inside.
       const geo = new THREE.SphereGeometry(R, 32, 24);
       const mat = new THREE.MeshPhysicalMaterial({
-        color:0xfdf5e8, transparent:true, opacity:0.32,
-        roughness:0.2, metalness:0, clearcoat:0.6, clearcoatRoughness:0.25
+        color:0x0b1f3f, transparent:true, opacity:0.45,
+        roughness:0.2, metalness:0, clearcoat:0.6, clearcoatRoughness:0.25,
+        emissive:0x0a1730, emissiveIntensity:0.55
       });
 
       const planet = new THREE.Mesh(geo, mat);
