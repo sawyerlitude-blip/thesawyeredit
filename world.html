@@ -315,6 +315,26 @@
     loader.crossOrigin = 'anonymous';
     const tiles = [];
     const orbits = [];
+    const butterflies = [];
+
+    // uniform-by-volume random point inside a sphere of the given radius
+    // (cube-root radius scaling, not plain Math.random()*maxR, avoids
+    // clumping every point toward the centre)
+    function randomInSphere(maxR){
+      const r = maxR * Math.cbrt(Math.random());
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      return new THREE.Vector3(
+        r * Math.sin(phi) * Math.cos(theta),
+        r * Math.sin(phi) * Math.sin(theta),
+        r * Math.cos(phi)
+      );
+    }
+    // same sprite/texture the ambient background swarm uses - one shared
+    // material for every butterfly across every planet
+    const butterflyTex = loader.load('assets/butterfly.png');
+    const butterflyMat = new THREE.SpriteMaterial({ map: butterflyTex, transparent:true, depthWrite:false });
+    const BUTTERFLY_ASPECT = 324 / 369;
     // a real orrery/solar-system layout - each client sits at its own
     // increasing distance from the centre (like Mercury/Venus/Earth), on a
     // nearly-flat, slightly-varied plane (real planetary orbits are all
@@ -368,11 +388,8 @@
       const spinSpeed = SHARED_SPIN_SPEED;
 
       // a real 3D ball, not a flat cut-out circle - a translucent glassy
-      // shell so the logo genuinely reads as suspended INSIDE it rather than
-      // stuck on top. It stays a plain colour itself, not textured with the
-      // logo directly - wrapping a square logo around a whole sphere's
-      // spherical UVs is what made it look zoomed-in/fisheye, since only a
-      // thin, heavily curved sliver of the image is ever facing the camera.
+      // shell (no logo on it any more - the client name shows on hover via
+      // the floating tile label instead, see the hover block below)
       const geo = new THREE.SphereGeometry(R, 32, 24);
       const mat = new THREE.MeshPhysicalMaterial({
         color:0xfdf5e8, transparent:true, opacity:0.32,
@@ -385,29 +402,24 @@
       pivot.add(planet);
       tiles.push(planet);
 
-      // the logo itself lives on a small flat, undistorted disc right at the
-      // sphere's own centre - genuinely inside the glassy shell rather than
-      // mounted on its surface - drawn opaque so the translucent shell reads
-      // as glass wrapped around it. Two back-to-back copies (not one
-      // double-sided plane, which would show the reverse side mirrored) so
-      // whichever way the sphere has turned, one is always facing the
-      // camera correctly. As the planet spins (below) the pair swings around
-      // together, rotating and fading exactly like something turning inside
-      // a glass globe.
-      const badgeMat = new THREE.MeshBasicMaterial({ color:0x171310 });
-      const badgeFront = new THREE.Mesh(new THREE.CircleGeometry(R * 0.72, 40), badgeMat);
-      badgeFront.position.set(0, 0, 0.01);
-      planet.add(badgeFront);
-      const badgeBack = new THREE.Mesh(new THREE.CircleGeometry(R * 0.72, 40), badgeMat);
-      badgeBack.position.set(0, 0, -0.01);
-      badgeBack.rotation.y = Math.PI;
-      planet.add(badgeBack);
-      loader.load(c.photo, tex=>{ badgeMat.map = tex; badgeMat.color.set(0xffffff); badgeMat.needsUpdate = true; });
-
-      // spins continuously on its own axis, independent of its orbit speed -
-      // this is what makes the logo visibly rotate around the ball and fade
-      // toward the dark side rather than sitting fixed on its surface
+      // spins continuously on its own axis, independent of its orbit speed
       orbits.push({ pivot, mesh: planet, speed: orbitSpeed, spin: spinSpeed });
+
+      // a couple of tiny butterflies flying around INSIDE the glass shell,
+      // wandering toward a random point within the sphere and picking a new
+      // one on arrival - genuinely trapped/fluttering within the ball's own
+      // volume rather than crossing its walls, same "locked" wandering
+      // feeling as the butterflies inside the S itself
+      const bMax = R * 0.6;
+      const butterflyCount = isSmallScreen ? 2 : 3;
+      for(let b = 0; b < butterflyCount; b++){
+        const spr = new THREE.Sprite(butterflyMat);
+        const sSize = R * (isSmallScreen ? 0.4 : 0.46);
+        spr.scale.set(sSize, sSize * BUTTERFLY_ASPECT, 1);
+        spr.position.copy(randomInSphere(bMax));
+        planet.add(spr);
+        butterflies.push({ sprite:spr, target:randomInSphere(bMax), maxR:bMax, speed:0.008 + Math.random() * 0.007 });
+      }
 
       // soft additive atmosphere glow just outside the sphere - the faint
       // halo real planet renders get from backlighting
@@ -432,6 +444,7 @@
     // used for the CSS-driven S on the Home hero
     let dragging=false, prevX=0, prevY=0, velX=0, velY=0;
     const raycaster = new THREE.Raycaster();
+    const _bDir = new THREE.Vector3(); // scratch vector reused by the in-planet butterfly wander loop below
     const mouseNDC = new THREE.Vector2(-10,-10);
     const parallax = new THREE.Vector2(0,0);
     let hovered = null;
@@ -542,6 +555,21 @@
       orbits.forEach(o=>{
         o.pivot.rotation.y += o.speed;
         o.mesh.rotation.y += o.spin;
+      });
+      // butterflies inside each planet drift toward their current target
+      // point and pick a new random one on arrival - always staying within
+      // that planet's own bMax radius, so they wander freely but never
+      // escape the glass shell
+      butterflies.forEach(bu=>{
+        const spr = bu.sprite;
+        _bDir.subVectors(bu.target, spr.position);
+        const dist = _bDir.length();
+        if(dist < 0.025){
+          bu.target = randomInSphere(bu.maxR);
+        } else {
+          _bDir.normalize().multiplyScalar(Math.min(bu.speed, dist));
+          spr.position.add(_bDir);
+        }
       });
       if(!dragging){
         velX *= 0.94; velY *= 0.94;
