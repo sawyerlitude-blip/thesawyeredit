@@ -79,7 +79,7 @@
   </div>
   <div class="hero-glow" id="heroGlow"></div>
   <div class="hero-s-stage" id="heroSStage">
-    <canvas class="hero-s-canvas" id="heroSCanvas" aria-label="The Sawyer Edit - S monogram, a thick 3D block letter with a universe and butterflies flowing inside"></canvas>
+    <canvas class="hero-s-canvas" id="heroSCanvas" aria-label="The Sawyer Edit - S monogram, a thick 3D block letter with liquid chrome color flowing across it"></canvas>
   </div>
   <div class="hero-a-inner">
     <a href="world.html" class="pill-btn" data-transition data-label="Loading S World —" id="viewWorkBtn">
@@ -101,9 +101,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
   // S monogram - real 3D extruded block letter (traced from the actual logo
-  // shape), with a universe/butterfly scene flowing on its front face,
-  // rotated by drag same as before, now true 3D depth instead of a flat
-  // image + CSS tilt.
+  // shape), textured with the original liquify liquid-chrome artwork,
+  // drifting slowly for a moving-liquid look. Rotated by drag same as
+  // before, now true 3D depth instead of a flat image + CSS tilt.
   (function(){
     const stage = document.getElementById('heroSStage');
     const canvas = document.getElementById('heroSCanvas');
@@ -157,24 +157,28 @@
     }
     uv.needsUpdate = true;
 
-    // static starfield texture on the shell itself - loaded once, no
-    // per-frame redraw needed since the "movement" now comes from real 3D
-    // butterflies flying inside (see below), not a flat painted scene
-    const universeTexture = new THREE.TextureLoader().load('images/s-universe-bg.jpg');
-    universeTexture.encoding = THREE.sRGBEncoding;
+    // the original liquify liquid-chrome artwork, used as the shell's color -
+    // same exact palette as everywhere else it appears on the site, just
+    // wrapped onto the thick 3D letter instead of sitting flat. Small offset
+    // + rotation drift each frame gives it the "moving" liquid look while
+    // keeping every pixel's color identical to the source (no recolor, no blur)
+    const liquifyTexture = new THREE.TextureLoader().load('images/s-flow-source.jpg');
+    liquifyTexture.encoding = THREE.sRGBEncoding;
+    liquifyTexture.wrapS = THREE.RepeatWrapping;
+    liquifyTexture.wrapT = THREE.RepeatWrapping;
+    liquifyTexture.center.set(0.5, 0.5);
 
-    // the shell is glass, not solid plastic - transparent + double-sided so
-    // looking through the front face (or in from any side as it rotates)
-    // reveals whatever is floating inside, same idea as a snow-globe
+    // the shell is a glossy glass-like shell over the liquify color, thick and
+    // dimensional rather than a flat painted letter
     const frontMat = new THREE.MeshPhysicalMaterial({
-      map: universeTexture, transparent: true, opacity: 0.5, side: THREE.DoubleSide,
-      roughness: 0.15, metalness: 0, clearcoat: 0.6, clearcoatRoughness: 0.2,
-      emissive: 0x140f28, emissiveIntensity: 0.3, depthWrite: false
+      map: liquifyTexture, transparent: true, opacity: 0.95, side: THREE.DoubleSide,
+      roughness: 0.12, metalness: 0.05, clearcoat: 0.75, clearcoatRoughness: 0.15,
+      depthWrite: false
     });
     const sideMat = new THREE.MeshPhysicalMaterial({
-      map: universeTexture, transparent: true, opacity: 0.4, side: THREE.DoubleSide,
-      color: 0xcfcbe0, roughness: 0.2, metalness: 0, clearcoat: 0.5, clearcoatRoughness: 0.25,
-      emissive: 0x140f28, emissiveIntensity: 0.25, depthWrite: false
+      map: liquifyTexture, transparent: true, opacity: 0.92, side: THREE.DoubleSide,
+      roughness: 0.16, metalness: 0.05, clearcoat: 0.65, clearcoatRoughness: 0.2,
+      depthWrite: false
     });
     const mesh = new THREE.Mesh(geo, [frontMat, sideMat]);
     mesh.renderOrder = 1;
@@ -183,73 +187,6 @@
     mesh.position.set(0, 0, -DEPTH/2);
     scene.add(group);
     group.scale.set(1.28, 1.28, 1.28);
-
-    // real 3D butterflies, sampled to sit inside the letter's actual
-    // silhouette (point-in-polygon, not just its bounding box) and at
-    // varying depths through the extrusion - since they're true sprites in
-    // space (not painted on a flat texture), they stay visible through the
-    // glass shell from every angle you drag to, including side-on
-    function pointInPolygon(x, y, pts){
-      let inside = false;
-      for(let i = 0, j = pts.length - 1; i < pts.length; j = i++){
-        const xi = pts[i][0], yi = pts[i][1], xj = pts[j][0], yj = pts[j][1];
-        const hit = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-        if(hit) inside = !inside;
-      }
-      return inside;
-    }
-    function sampleInside(){
-      for(let t = 0; t < 50; t++){
-        const x = box.minX + Math.random() * bw;
-        const y = box.minY + Math.random() * bh;
-        if(pointInPolygon(x, y, SHAPE_PTS)) return [x, y];
-      }
-      return [(box.minX + box.maxX) / 2, (box.minY + box.maxY) / 2];
-    }
-    // pick a nearby point to wander to next, checked so the straight-line
-    // path there stays inside the S the whole way (the S is a concave shape,
-    // so a plain random point elsewhere in it can mean flying straight across
-    // the open gap between the two loops - this keeps butterflies hugging the
-    // letter's actual solid area instead of darting across empty space)
-    function sampleNearby(x, y){
-      for(let t = 0; t < 24; t++){
-        const ang = Math.random() * Math.PI * 2;
-        const r = 10 + Math.random() * 22;
-        const nx = x + Math.cos(ang) * r;
-        const ny = y + Math.sin(ang) * r;
-        if(!pointInPolygon(nx, ny, SHAPE_PTS)) continue;
-        let clear = true;
-        for(let s = 0.2; s < 1; s += 0.2){
-          if(!pointInPolygon(x + (nx - x) * s, y + (ny - y) * s, SHAPE_PTS)){ clear = false; break; }
-        }
-        if(clear) return [nx, ny];
-      }
-      return [x, y];
-    }
-
-    const butterflyTexture = new THREE.TextureLoader().load('assets/butterfly.png');
-    const flyAspect = 369/324;
-    const butterflies = [];
-    const N = isSmallScreen ? 10 : 15;
-    for(let i = 0; i < N; i++){
-      const [cx, cy] = sampleInside();
-      const [tx, ty] = sampleNearby(cx, cy);
-      const mat = new THREE.SpriteMaterial({ map: butterflyTexture, transparent: true, depthWrite: false });
-      const sprite = new THREE.Sprite(mat);
-      const size = ((isSmallScreen ? 6 : 8) + Math.random() * 3.5);
-      const startZ = (Math.random() * 2 - 1) * DEPTH * 0.35;
-      sprite.scale.set(size * flyAspect, size, 1);
-      sprite.position.set(cx, cy, startZ);
-      sprite.renderOrder = 2;
-      group.add(sprite);
-      butterflies.push({
-        sprite, x: cx, y: cy, z: startZ,
-        tx, ty, tz: (Math.random() * 2 - 1) * DEPTH * 0.35,
-        speed: 10 + Math.random() * 8,
-        baseSize: size, flap: Math.random() * Math.PI * 2, flapSpeed: 0.35 + Math.random() * 0.18,
-        wobbleT: Math.random() * Math.PI * 2
-      });
-    }
 
     let dragging = false, lastPX = 0, lastPY = 0, dragRotY = 0, dragRotX = 0, curRotY = 0, curRotX = 0.15, restT = 0;
 
@@ -282,26 +219,8 @@
       group.rotation.x = curRotX;
 
       flyT += 0.016;
-      butterflies.forEach(b=>{
-        const dx = b.tx - b.x, dy = b.ty - b.y, dz = b.tz - b.z;
-        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        if(dist < 3){
-          const [nx, ny] = sampleNearby(b.x, b.y);
-          b.tx = nx; b.ty = ny; b.tz = (Math.random() * 2 - 1) * DEPTH * 0.35;
-        } else {
-          const step = b.speed * 0.016;
-          b.x += (dx / dist) * step;
-          b.y += (dy / dist) * step;
-          b.z += (dz / dist) * step;
-        }
-        b.wobbleT += 0.11;
-        const wob = Math.sin(b.wobbleT) * 2.2;
-        b.sprite.position.set(b.x + Math.cos(b.wobbleT * 0.7) * 1.4, b.y + wob, b.z);
-        b.flap += b.flapSpeed;
-        const wingScale = 0.6 + Math.abs(Math.sin(b.flap)) * 0.45;
-        b.sprite.scale.set(b.baseSize * flyAspect, b.baseSize * wingScale, 1);
-        b.sprite.material.rotation = Math.max(-0.4, Math.min(0.4, dx * 0.015));
-      });
+      liquifyTexture.offset.set(Math.sin(flyT * 0.15) * 0.055, Math.cos(flyT * 0.12) * 0.055);
+      liquifyTexture.rotation = Math.sin(flyT * 0.07) * 0.05;
 
       renderer.render(scene, camera);
     }
