@@ -325,13 +325,20 @@
     // being locked to always face outward
     const baseRadius = isSmallScreen ? 1.6 : 2.2;
     const radiusStep = isSmallScreen ? 0.55 : 0.85;
+    // one shared tilt and one shared (slow) speed for every planet - giving
+    // each client its own tiltZ/speed was what put one of them on a visibly
+    // different, higher plane and spinning out of step with the other two.
+    // They still start at different points around the ring (below) and sit
+    // at different distances from the centre, so they read as distinct
+    // orbits without one looking like it's floating off on its own
+    const SHARED_TILT = 0.11;
+    const SHARED_ORBIT_SPEED = 0.0011;
+    const SHARED_SPIN_SPEED = 0.006;
     CLIENTS.forEach((c, i)=>{
       const radius = baseRadius + i * radiusStep;
       // circular badge tiles (client logos are square black-background images;
       // a sphere crops/wraps them onto a clean little globe)
       const R = isSmallScreen ? 0.38 : 0.5;
-      const tiltX = 0.1 + i * 0.045;
-      const tiltZ = i * 1.3;
 
       // the visible orbit path itself - a static thin ring traced at this
       // radius in this orbit's plane, so you can actually see the track each
@@ -346,24 +353,26 @@
         new THREE.BufferGeometry().setFromPoints(orbitPts),
         new THREE.LineBasicMaterial({ color:0xe0a045, transparent:true, opacity:0.22 })
       );
-      orbitLine.rotation.x = tiltX;
-      orbitLine.rotation.z = tiltZ;
+      orbitLine.rotation.x = SHARED_TILT;
       group.add(orbitLine);
 
       // the pivot that actually carries the planet around that same path
       const pivot = new THREE.Object3D();
-      pivot.rotation.x = tiltX;
-      pivot.rotation.z = tiltZ;
+      pivot.rotation.x = SHARED_TILT;
       pivot.rotation.y = (i / CLIENTS.length) * Math.PI * 2;
       group.add(pivot);
-      const orbitSpeed = 0.0022 + i * 0.0009;
-      const spinSpeed = 0.014 + i * 0.006;
+      const orbitSpeed = SHARED_ORBIT_SPEED;
+      const spinSpeed = SHARED_SPIN_SPEED;
 
       // a real 3D ball, not a flat cut-out circle - lit so it actually reads
       // as a sphere (a highlight on one side, falling off into shadow on the
-      // other), the way an actual little planet would catch light
+      // other), the way an actual little planet would catch light. It stays
+      // a plain colour, not textured with the logo directly - wrapping a
+      // square logo around a whole sphere's spherical UVs is what made it
+      // look zoomed-in/fisheye, since only a thin, heavily curved sliver of
+      // the image is ever facing the camera at once.
       const geo = new THREE.SphereGeometry(R, 32, 24);
-      const mat = new THREE.MeshStandardMaterial({ color:0x0a0908, roughness:0.5, metalness:0.08, emissive:0x120d08, emissiveIntensity:0.4 });
+      const mat = new THREE.MeshStandardMaterial({ color:0x171310, roughness:0.5, metalness:0.15 });
 
       const planet = new THREE.Mesh(geo, mat);
       planet.position.set(radius, 0, 0);
@@ -371,12 +380,23 @@
       pivot.add(planet);
       tiles.push(planet);
 
+      // the logo itself lives on a small flat, undistorted disc mounted just
+      // proud of the sphere's surface - a "decal" on the planet rather than
+      // a texture wrapped around it, so it always reads crisp and correctly
+      // proportioned. It's a child of the planet mesh, so as the planet spins
+      // (below) the badge swings around with it, turning face-on into view,
+      // then edge-on and behind the ball's own curve out of view again -
+      // genuinely rotating and fading exactly like a marking on a real globe.
+      const badgeMat = new THREE.MeshBasicMaterial({ color:0x171310 });
+      const badge = new THREE.Mesh(new THREE.CircleGeometry(R * 0.86, 40), badgeMat);
+      badge.position.set(0, 0, R * 1.01);
+      planet.add(badge);
+      loader.load(c.photo, tex=>{ badgeMat.map = tex; badgeMat.color.set(0xffffff); badgeMat.needsUpdate = true; });
+
       // spins continuously on its own axis, independent of its orbit speed -
       // this is what makes the logo visibly rotate around the ball and fade
       // toward the dark side rather than sitting fixed on its surface
       orbits.push({ pivot, mesh: planet, speed: orbitSpeed, spin: spinSpeed });
-
-      loader.load(c.photo, tex=>{ mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; });
 
       // soft additive atmosphere glow just outside the sphere - the faint
       // halo real planet renders get from backlighting
