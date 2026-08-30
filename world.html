@@ -355,6 +355,24 @@
       }
       return [(sBox.minX + sBox.maxX) / 2, (sBox.minY + sBox.maxY) / 2];
     }
+    // nearby wander point with the straight-line path checked to stay inside
+    // the S the whole way (it's concave, so a plain random far point can mean
+    // flying straight across the open gap between the two loops)
+    function sSampleNearby(x, y){
+      for(let t = 0; t < 24; t++){
+        const ang = Math.random() * Math.PI * 2;
+        const r = 10 + Math.random() * 22;
+        const nx = x + Math.cos(ang) * r;
+        const ny = y + Math.sin(ang) * r;
+        if(!sPointInPolygon(nx, ny, S_SHAPE_PTS)) continue;
+        let clear = true;
+        for(let s = 0.2; s < 1; s += 0.2){
+          if(!sPointInPolygon(x + (nx - x) * s, y + (ny - y) * s, S_SHAPE_PTS)){ clear = false; break; }
+        }
+        if(clear) return [nx, ny];
+      }
+      return [x, y];
+    }
 
     const sButterflyTexture = new THREE.TextureLoader().load('assets/butterfly.png');
     const sFlyAspect = 369/324;
@@ -362,18 +380,21 @@
     const sN = isSmallScreen ? 10 : 15;
     for(let i = 0; i < sN; i++){
       const [cx, cy] = sSampleInside();
+      const [tx, ty] = sSampleNearby(cx, cy);
       const mat = new THREE.SpriteMaterial({ map: sButterflyTexture, transparent: true, depthWrite: false });
       const sprite = new THREE.Sprite(mat);
       const size = ((isSmallScreen ? 6 : 8) + Math.random() * 3.5);
+      const startZ = (Math.random() * 2 - 1) * S_DEPTH * 0.35;
       sprite.scale.set(size * sFlyAspect, size, 1);
-      sprite.position.set(cx, cy, (Math.random() * 2 - 1) * S_DEPTH * 0.3);
+      sprite.position.set(cx, cy, startZ);
       sprite.renderOrder = 2;
       sMonogram.add(sprite);
       sButterflies.push({
-        sprite, cx, cy, zc: sprite.position.z,
-        rx: 14 + Math.random() * 16, ry: 13 + Math.random() * 15, rz: S_DEPTH * 0.4,
-        speed: 1.1 + Math.random() * 0.7, phase: Math.random() * Math.PI * 2, phase2: Math.random() * Math.PI * 2,
-        baseSize: size, flap: Math.random() * Math.PI * 2, flapSpeed: 0.3 + Math.random() * 0.16
+        sprite, x: cx, y: cy, z: startZ,
+        tx, ty, tz: (Math.random() * 2 - 1) * S_DEPTH * 0.35,
+        speed: 10 + Math.random() * 8,
+        baseSize: size, flap: Math.random() * Math.PI * 2, flapSpeed: 0.35 + Math.random() * 0.18,
+        wobbleT: Math.random() * Math.PI * 2
       });
     }
     let sFlyT = 0;
@@ -531,13 +552,24 @@
 
       sFlyT += 0.016;
       sButterflies.forEach(b=>{
-        const ang = sFlyT * b.speed + b.phase;
-        b.sprite.position.x = b.cx + Math.sin(ang) * b.rx;
-        b.sprite.position.y = b.cy + Math.sin(ang * 1.3 + b.phase2) * b.ry;
-        b.sprite.position.z = b.zc + Math.cos(ang * 0.8 + b.phase2) * b.rz;
+        const dx = b.tx - b.x, dy = b.ty - b.y, dz = b.tz - b.z;
+        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if(dist < 3){
+          const [nx, ny] = sSampleNearby(b.x, b.y);
+          b.tx = nx; b.ty = ny; b.tz = (Math.random() * 2 - 1) * S_DEPTH * 0.35;
+        } else {
+          const step = b.speed * 0.016;
+          b.x += (dx / dist) * step;
+          b.y += (dy / dist) * step;
+          b.z += (dz / dist) * step;
+        }
+        b.wobbleT += 0.11;
+        const wob = Math.sin(b.wobbleT) * 2.2;
+        b.sprite.position.set(b.x + Math.cos(b.wobbleT * 0.7) * 1.4, b.y + wob, b.z);
         b.flap += b.flapSpeed;
         const wingScale = 0.6 + Math.abs(Math.sin(b.flap)) * 0.45;
         b.sprite.scale.set(b.baseSize * sFlyAspect, b.baseSize * wingScale, 1);
+        b.sprite.material.rotation = Math.max(-0.4, Math.min(0.4, dx * 0.015));
       });
 
       renderer.render(scene, camera);
