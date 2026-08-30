@@ -336,6 +336,11 @@
     const butterflyTex = loader.load('assets/butterfly-gold.png');
     const butterflyMat = new THREE.SpriteMaterial({ map: butterflyTex, transparent:true, depthWrite:false });
     const BUTTERFLY_ASPECT = 324 / 369;
+    // one small, shared starfield texture loaded once and reused by every
+    // planet's shell (a tiny 256x328 jpeg - plenty for something only ever
+    // seen at a few dozen pixels across - so this costs nothing extra per
+    // planet and stays fast)
+    const universeTex = loader.load('assets/planet-universe.jpg');
     // a real orrery/solar-system layout - each client sits at its own
     // increasing distance from the centre (like Mercury/Venus/Earth), on a
     // nearly-flat, slightly-varied plane (real planetary orbits are all
@@ -358,8 +363,9 @@
     CLIENTS.forEach((c, i)=>{
       const radius = baseRadius + i * radiusStep;
       // circular badge tiles (client logos are square black-background images;
-      // a sphere crops/wraps them onto a clean little globe)
-      const R = isSmallScreen ? 0.38 : 0.5;
+      // a sphere crops/wraps them onto a clean little globe) - a touch
+      // smaller than before
+      const R = isSmallScreen ? 0.34 : 0.44;
 
       // the visible orbit path itself - a static thin ring traced at this
       // radius in this orbit's plane, so you can actually see the track each
@@ -394,16 +400,22 @@
       const spinSpeed = SHARED_SPIN_SPEED;
 
       // a real 3D ball, not a flat cut-out circle - a translucent, dark blue
-      // glassy shell (no logo on it any more - the client name shows on
-      // hover via the floating tile label instead, see the hover block
-      // below). The emissive tint keeps that dark blue reading consistently
-      // on every side, not just wherever the directional light happens to
-      // land, while staying transparent enough to see the butterfly inside.
+      // glassy shell with a little starfield wrapped inside it (no logo on
+      // it any more - the client name shows on hover via the floating tile
+      // label instead, see the hover block below). The dark blue colour
+      // multiplies over the starfield map, darkening it further and tinting
+      // it to match, and the emissive keeps that reading consistently on
+      // every side rather than only wherever the light lands. depthWrite is
+      // off, same as the butterfly sprites - without that, this shell (being
+      // drawn with normal depth writes despite being transparent) was
+      // intermittently hiding the butterflies behind its own near surface
+      // depending on the angle, making them flicker in and out instead of
+      // staying constantly visible.
       const geo = new THREE.SphereGeometry(R, 32, 24);
       const mat = new THREE.MeshPhysicalMaterial({
-        color:0x0b1f3f, transparent:true, opacity:0.45,
+        color:0x0a1a33, map:universeTex, transparent:true, opacity:0.55,
         roughness:0.2, metalness:0, clearcoat:0.6, clearcoatRoughness:0.25,
-        emissive:0x0a1730, emissiveIntensity:0.55
+        emissive:0x081226, emissiveIntensity:0.6, depthWrite:false
       });
 
       const planet = new THREE.Mesh(geo, mat);
@@ -427,6 +439,10 @@
         const sSize = R * (isSmallScreen ? 0.4 : 0.46);
         spr.scale.set(sSize, sSize * BUTTERFLY_ASPECT, 1);
         spr.position.copy(randomInSphere(bMax));
+        // always draw after (on top of) the shell, regardless of distance
+        // sorting - belt-and-braces on top of the depthWrite fix above, so
+        // the butterflies genuinely never disappear behind the glass
+        spr.renderOrder = 2;
         planet.add(spr);
         butterflies.push({ sprite:spr, target:randomInSphere(bMax), maxR:bMax, speed:0.008 + Math.random() * 0.007 });
       }
@@ -435,7 +451,7 @@
       // halo real planet renders get from backlighting
       const atmosphere = new THREE.Mesh(
         new THREE.SphereGeometry(R * 1.22, 24, 16),
-        new THREE.MeshBasicMaterial({ color:0xe0a045, transparent:true, opacity:0.16, side:THREE.BackSide })
+        new THREE.MeshBasicMaterial({ color:0xe0a045, transparent:true, opacity:0.16, side:THREE.BackSide, depthWrite:false })
       );
       atmosphere.position.set(radius, 0, 0);
       pivot.add(atmosphere);
