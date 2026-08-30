@@ -356,23 +356,28 @@
       orbitLine.rotation.x = SHARED_TILT;
       group.add(orbitLine);
 
-      // the pivot that actually carries the planet around that same path
+      // the pivot that actually carries the planet around that same path -
+      // every client starts at the same angle (like Amano's) and shares the
+      // same speed, so all three move in lockstep at the same rotation at
+      // all times, just at their own distance from the S
       const pivot = new THREE.Object3D();
       pivot.rotation.x = SHARED_TILT;
-      pivot.rotation.y = (i / CLIENTS.length) * Math.PI * 2;
+      pivot.rotation.y = 0;
       group.add(pivot);
       const orbitSpeed = SHARED_ORBIT_SPEED;
       const spinSpeed = SHARED_SPIN_SPEED;
 
-      // a real 3D ball, not a flat cut-out circle - lit so it actually reads
-      // as a sphere (a highlight on one side, falling off into shadow on the
-      // other), the way an actual little planet would catch light. It stays
-      // a plain colour, not textured with the logo directly - wrapping a
-      // square logo around a whole sphere's spherical UVs is what made it
-      // look zoomed-in/fisheye, since only a thin, heavily curved sliver of
-      // the image is ever facing the camera at once.
+      // a real 3D ball, not a flat cut-out circle - a translucent glassy
+      // shell so the logo genuinely reads as suspended INSIDE it rather than
+      // stuck on top. It stays a plain colour itself, not textured with the
+      // logo directly - wrapping a square logo around a whole sphere's
+      // spherical UVs is what made it look zoomed-in/fisheye, since only a
+      // thin, heavily curved sliver of the image is ever facing the camera.
       const geo = new THREE.SphereGeometry(R, 32, 24);
-      const mat = new THREE.MeshStandardMaterial({ color:0x171310, roughness:0.5, metalness:0.15 });
+      const mat = new THREE.MeshPhysicalMaterial({
+        color:0xfdf5e8, transparent:true, opacity:0.32,
+        roughness:0.2, metalness:0, clearcoat:0.6, clearcoatRoughness:0.25
+      });
 
       const planet = new THREE.Mesh(geo, mat);
       planet.position.set(radius, 0, 0);
@@ -380,17 +385,23 @@
       pivot.add(planet);
       tiles.push(planet);
 
-      // the logo itself lives on a small flat, undistorted disc mounted just
-      // proud of the sphere's surface - a "decal" on the planet rather than
-      // a texture wrapped around it, so it always reads crisp and correctly
-      // proportioned. It's a child of the planet mesh, so as the planet spins
-      // (below) the badge swings around with it, turning face-on into view,
-      // then edge-on and behind the ball's own curve out of view again -
-      // genuinely rotating and fading exactly like a marking on a real globe.
+      // the logo itself lives on a small flat, undistorted disc right at the
+      // sphere's own centre - genuinely inside the glassy shell rather than
+      // mounted on its surface - drawn opaque so the translucent shell reads
+      // as glass wrapped around it. Two back-to-back copies (not one
+      // double-sided plane, which would show the reverse side mirrored) so
+      // whichever way the sphere has turned, one is always facing the
+      // camera correctly. As the planet spins (below) the pair swings around
+      // together, rotating and fading exactly like something turning inside
+      // a glass globe.
       const badgeMat = new THREE.MeshBasicMaterial({ color:0x171310 });
-      const badge = new THREE.Mesh(new THREE.CircleGeometry(R * 0.86, 40), badgeMat);
-      badge.position.set(0, 0, R * 1.01);
-      planet.add(badge);
+      const badgeFront = new THREE.Mesh(new THREE.CircleGeometry(R * 0.72, 40), badgeMat);
+      badgeFront.position.set(0, 0, 0.01);
+      planet.add(badgeFront);
+      const badgeBack = new THREE.Mesh(new THREE.CircleGeometry(R * 0.72, 40), badgeMat);
+      badgeBack.position.set(0, 0, -0.01);
+      badgeBack.rotation.y = Math.PI;
+      planet.add(badgeBack);
       loader.load(c.photo, tex=>{ badgeMat.map = tex; badgeMat.color.set(0xffffff); badgeMat.needsUpdate = true; });
 
       // spins continuously on its own axis, independent of its orbit speed -
