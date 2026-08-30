@@ -43,8 +43,15 @@
   const openBtn = document.getElementById('menuOpenBtn');
   const closeBtn = document.getElementById('menuCloseBtn');
   if(!menuOverlay) return;
+  const close = ()=> menuOverlay.classList.remove('open');
   if(openBtn) openBtn.addEventListener('click', ()=> menuOverlay.classList.add('open'));
-  if(closeBtn) closeBtn.addEventListener('click', ()=> menuOverlay.classList.remove('open'));
+  if(closeBtn) closeBtn.addEventListener('click', close);
+  // clicking the dimmed backdrop (anywhere outside the slide-in panel
+  // itself) also dismisses the menu, same as Escape - previously the
+  // overlay had no such handler, so a click there was silently swallowed
+  // and the only way to close the menu was picking an actual nav link
+  menuOverlay.addEventListener('click', e=>{ if(e.target === menuOverlay) close(); });
+  document.addEventListener('keydown', e=>{ if(e.key === 'Escape') close(); });
 })();
 
 // reveal on scroll
@@ -130,7 +137,12 @@
   // frame for a hundred-plus sprites was the single biggest source of jank
   // on phones. Desktop keeps the full, richer effect.
   const isSmallScreen = window.innerWidth < 760;
-  const COUNT = isSmallScreen ? 70 : 220;
+  // the landing page already has the big interactive S taking up the screen,
+  // so on phones the full ambient swarm on top of it reads as cluttered -
+  // cut it down hard there specifically, while other mobile pages (which
+  // don't have that competing focal point) keep the fuller 70
+  const isLanding = document.body.classList.contains('scroll-locked');
+  const COUNT = isSmallScreen ? (isLanding ? 22 : 70) : 220;
   const petals = [];
   const aspect = 369/324; // butterfly sprite's own width/height ratio
   for(let i=0;i<COUNT;i++){

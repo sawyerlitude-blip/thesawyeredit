@@ -140,7 +140,32 @@
     }
 
     let duration = 0;
-    video.addEventListener('loadeddata', ()=>{ duration = video.duration || 0; drawFrame(); });
+    function onReady(){ duration = video.duration || duration; drawFrame(); }
+    video.addEventListener('loadedmetadata', onReady);
+    video.addEventListener('loadeddata', onReady);
+    video.addEventListener('canplay', onReady);
+
+    // iOS Safari in particular won't actually decode/paint a single frame of
+    // a video that's never been played, even once metadata has loaded and
+    // currentTime has been set by hand - scrubbing silently does nothing
+    // until playback has genuinely started at least once. This is the
+    // leading suspect for the S not showing up at all on some phones.
+    // Playing it (muted, inline, already off-screen) and immediately pausing
+    // again "primes" the decoder so there's a real frame to draw, without
+    // it ever visibly auto-playing.
+    let primed = false;
+    function primePlayback(){
+      if(primed) return;
+      const p = video.play();
+      if(p && typeof p.then === 'function'){
+        p.then(()=>{ video.pause(); primed = true; onReady(); }).catch(()=>{});
+      }
+    }
+    video.load();
+    video.addEventListener('loadedmetadata', primePlayback, { once:true });
+    // play() can require a user gesture on some browsers before it resolves -
+    // retry on the very first touch of the stage as a fallback
+    stage.addEventListener('pointerdown', primePlayback, { once:true });
 
     // the clip is encoded with every single frame as its own keyframe
     // specifically so any timestamp can be seeked instantly rather than

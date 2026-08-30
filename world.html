@@ -558,12 +558,28 @@
       sVideo.currentTime = t;
     }
     if(sVideo){
-      sVideo.addEventListener('loadeddata', ()=>{ sDuration = sVideo.duration || 0; sDrawFrame(); });
+      function sOnReady(){ sDuration = sVideo.duration || sDuration; sDrawFrame(); }
+      sVideo.addEventListener('loadedmetadata', sOnReady);
+      sVideo.addEventListener('loadeddata', sOnReady);
+      sVideo.addEventListener('canplay', sOnReady);
       sVideo.addEventListener('seeked', ()=>{
         sDrawFrame();
         if(sPendingT !== null){ const t = sPendingT; sPendingT = null; sVideo.currentTime = t; }
         else { sSeeking = false; }
       });
+      // same mobile-decode fix as the Home hero's S - some phones won't
+      // paint a single frame of a video that's never actually played
+      let sPrimed = false;
+      function sPrimePlayback(){
+        if(sPrimed) return;
+        const p = sVideo.play();
+        if(p && typeof p.then === 'function'){
+          p.then(()=>{ sVideo.pause(); sPrimed = true; sOnReady(); }).catch(()=>{});
+        }
+      }
+      sVideo.load();
+      sVideo.addEventListener('loadedmetadata', sPrimePlayback, { once:true });
+      canvas.addEventListener('pointerdown', sPrimePlayback, { once:true });
     }
 
     canvas.addEventListener('pointerdown', e=>{ dragging = true; prevX = e.clientX; prevY = e.clientY; });

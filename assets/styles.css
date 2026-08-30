@@ -100,6 +100,17 @@ nav{
 
 /* full-screen slide-in menu */
 .menu-overlay{position:fixed;inset:0;z-index:9000;pointer-events:none;}
+/* dimmed backdrop behind the panel - fades in with the panel's own slide-in,
+   and doubles as an obvious "click here to dismiss" affordance. Before this,
+   the overlay had no visible backdrop at all, so clicking anywhere outside
+   the narrow panel silently did nothing (the invisible full-screen overlay
+   was still capturing/swallowing the click) instead of closing the menu -
+   the only way out was picking an actual nav link. */
+.menu-overlay::before{
+  content:'';position:absolute;inset:0;background:rgba(10,9,8,.35);
+  opacity:0;transition:opacity .5s var(--ease-out);pointer-events:none;
+}
+.menu-overlay.open::before{opacity:1;}
 .menu-panel{
   position:absolute;top:0;right:0;bottom:0;width:100%;max-width:520px;
   background:var(--card);transform:translateX(100%);transition:transform .7s var(--ease-out);
