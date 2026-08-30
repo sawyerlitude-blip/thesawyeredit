@@ -157,79 +157,19 @@
     }
     uv.needsUpdate = true;
 
-    // colors sampled from the original liquify artwork's own vivid palette
-    // (orange, red, rose, magenta, blue, deep maroon) - a single unlit shader
-    // blends smoothly between them using soft drifting noise, evaluated
-    // directly from each point's real 3D position. That means the front cap,
-    // the sides and the back are all painted by the exact same function with
-    // no seam and no per-face tint, and there's no lighting term at all, so
-    // the color is identical from every angle - a smooth, weightless drifting
-    // color field inside the letter rather than a photo wrapped onto facets
-    const liquifyUniforms = {
-      uTime: { value: 0 },
-      uColor0: { value: new THREE.Color(0xe18552) },
-      uColor1: { value: new THREE.Color(0xce5022) },
-      uColor2: { value: new THREE.Color(0xb35360) },
-      uColor3: { value: new THREE.Color(0xda59a0) },
-      uColor4: { value: new THREE.Color(0x3d619a) },
-      uColor5: { value: new THREE.Color(0x893028) }
-    };
-    const liquifyMat = new THREE.ShaderMaterial({
-      uniforms: liquifyUniforms,
-      side: THREE.DoubleSide,
-      vertexShader: `
-        varying vec3 vPos;
-        void main(){
-          vPos = position;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform float uTime;
-        uniform vec3 uColor0, uColor1, uColor2, uColor3, uColor4, uColor5;
-        varying vec3 vPos;
-        float hash(vec3 p){
-          p = fract(p * vec3(443.897, 441.423, 437.195));
-          p += dot(p, p.yzx + 19.19);
-          return fract((p.x + p.y) * p.z);
-        }
-        float vnoise(vec3 p){
-          vec3 i = floor(p), f = fract(p);
-          f = f * f * (3.0 - 2.0 * f);
-          float n000 = hash(i + vec3(0.0,0.0,0.0));
-          float n100 = hash(i + vec3(1.0,0.0,0.0));
-          float n010 = hash(i + vec3(0.0,1.0,0.0));
-          float n110 = hash(i + vec3(1.0,1.0,0.0));
-          float n001 = hash(i + vec3(0.0,0.0,1.0));
-          float n101 = hash(i + vec3(1.0,0.0,1.0));
-          float n011 = hash(i + vec3(0.0,1.0,1.0));
-          float n111 = hash(i + vec3(1.0,1.0,1.0));
-          float nx00 = mix(n000, n100, f.x), nx10 = mix(n010, n110, f.x);
-          float nx01 = mix(n001, n101, f.x), nx11 = mix(n011, n111, f.x);
-          float nxy0 = mix(nx00, nx10, f.y), nxy1 = mix(nx01, nx11, f.y);
-          return mix(nxy0, nxy1, f.z);
-        }
-        float fbm(vec3 p){
-          float v = 0.0, amp = 0.5;
-          for(int i = 0; i < 4; i++){ v += amp * vnoise(p); p *= 2.02; amp *= 0.55; }
-          return v;
-        }
-        void main(){
-          vec3 p = vPos * 0.045;
-          vec3 flow = vec3(uTime * 0.035, uTime * -0.028, uTime * 0.022);
-          float n1 = fbm(p + flow);
-          float n2 = fbm(p * 1.6 - flow * 1.3 + 11.0);
-          float n3 = fbm(p * 0.8 + flow * 0.6 + 40.0);
-          vec3 col = uColor0;
-          col = mix(col, uColor1, smoothstep(0.25, 0.6, n1));
-          col = mix(col, uColor4, smoothstep(0.35, 0.7, n2));
-          col = mix(col, uColor3, smoothstep(0.5, 0.8, n1 * 0.6 + n2 * 0.4));
-          col = mix(col, uColor2, smoothstep(0.3, 0.65, n3));
-          col = mix(col, uColor5, smoothstep(0.78, 0.95, n2 * n3 * 1.4));
-          gl_FragColor = vec4(col, 1.0);
-        }
-      `
-    });
+    // the actual liquify artwork itself, mapped onto the shape - this is the
+    // exact same image used everywhere else on the site, not an abstraction
+    // of its colors. One unlit material, used as the ONLY material on the
+    // mesh (not a front/side array), so literally every face - front, back,
+    // bevel - is painted by the exact same texture the exact same way, with
+    // no lighting term at all. That's what makes it identical from every
+    // angle instead of shifting brighter/darker as it's dragged around
+    const liquifyTexture = new THREE.TextureLoader().load('images/s-flow-source.jpg');
+    liquifyTexture.encoding = THREE.sRGBEncoding;
+    liquifyTexture.wrapS = THREE.ClampToEdgeWrapping;
+    liquifyTexture.wrapT = THREE.ClampToEdgeWrapping;
+    liquifyTexture.center.set(0.5, 0.5);
+    const liquifyMat = new THREE.MeshBasicMaterial({ map: liquifyTexture, side: THREE.DoubleSide });
     const mesh = new THREE.Mesh(geo, liquifyMat);
     mesh.renderOrder = 1;
     const group = new THREE.Group();
@@ -269,7 +209,8 @@
       group.rotation.x = curRotX;
 
       flyT += 0.016;
-      liquifyUniforms.uTime.value = flyT;
+      liquifyTexture.offset.set(Math.sin(flyT * 0.15) * 0.05, Math.cos(flyT * 0.12) * 0.05);
+      liquifyTexture.rotation = Math.sin(flyT * 0.07) * 0.045;
 
       renderer.render(scene, camera);
     }
