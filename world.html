@@ -316,19 +316,20 @@
 
     const sLiquifyTexture = new THREE.TextureLoader().load('images/s-flow-source.jpg');
     sLiquifyTexture.encoding = THREE.sRGBEncoding;
-    sLiquifyTexture.wrapS = THREE.RepeatWrapping;
-    sLiquifyTexture.wrapT = THREE.RepeatWrapping;
+    sLiquifyTexture.wrapS = THREE.ClampToEdgeWrapping;
+    sLiquifyTexture.wrapT = THREE.ClampToEdgeWrapping;
     sLiquifyTexture.center.set(0.5, 0.5);
 
+    // solid liquid-chrome letter, fully opaque - no transparency, so the
+    // pale page background can't bleed through / wash it out to white as it
+    // spins, which is what a transparent glass-style shell was doing before
     const sFrontMat = new THREE.MeshPhysicalMaterial({
-      map: sLiquifyTexture, transparent: true, opacity: 0.95, side: THREE.DoubleSide,
-      roughness: 0.12, metalness: 0.05, clearcoat: 0.75, clearcoatRoughness: 0.15,
-      depthWrite: false
+      map: sLiquifyTexture, side: THREE.DoubleSide,
+      roughness: 0.28, metalness: 0.1, clearcoat: 0.4, clearcoatRoughness: 0.35
     });
     const sSideMat = new THREE.MeshPhysicalMaterial({
-      map: sLiquifyTexture, transparent: true, opacity: 0.92, side: THREE.DoubleSide,
-      roughness: 0.16, metalness: 0.05, clearcoat: 0.65, clearcoatRoughness: 0.2,
-      depthWrite: false
+      map: sLiquifyTexture, side: THREE.DoubleSide,
+      roughness: 0.32, metalness: 0.1, clearcoat: 0.35, clearcoatRoughness: 0.4
     });
     const sMesh = new THREE.Mesh(sGeo, [sFrontMat, sSideMat]);
     sMesh.position.set(0, 0, -S_DEPTH/2);
