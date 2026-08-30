@@ -315,31 +315,55 @@
     loader.crossOrigin = 'anonymous';
     const tiles = [];
     const orbits = [];
+    // a real orrery/solar-system layout - each client sits at its own
+    // increasing distance from the centre (like Mercury/Venus/Earth), on a
+    // nearly-flat, slightly-varied plane (real planetary orbits are all
+    // close to coplanar, not wildly tilted against each other), travelling
+    // along a visible thin orbit line, and spinning continuously on its own
+    // axis so its logo keeps rotating in and out of view - fading toward the
+    // shadowed side as it turns, the way a real lit globe would, rather than
+    // being locked to always face outward
+    const baseRadius = isSmallScreen ? 1.6 : 2.2;
+    const radiusStep = isSmallScreen ? 0.55 : 0.85;
     CLIENTS.forEach((c, i)=>{
-      // tighter ring + smaller badges on phones - the same radius felt
-      // oversized and cramped together on a narrow screen
-      const radius = isSmallScreen ? 2.5 : 3.4;
+      const radius = baseRadius + i * radiusStep;
       // circular badge tiles (client logos are square black-background images;
-      // a circle geometry crops them to a clean disc instead of a square card).
-      const R = isSmallScreen ? 0.4 : 0.55;
+      // a sphere crops/wraps them onto a clean little globe)
+      const R = isSmallScreen ? 0.38 : 0.5;
+      const tiltX = 0.1 + i * 0.045;
+      const tiltZ = i * 1.3;
 
-      // each client gets its own orbital plane - a different tilt (inclination)
-      // and a different orientation of that tilt, so the three orbits cross
-      // each other at different angles instead of all sitting on one flat
-      // ring, plus a distinct speed so they drift in and out of sync rather
-      // than moving in lockstep
+      // the visible orbit path itself - a static thin ring traced at this
+      // radius in this orbit's plane, so you can actually see the track each
+      // planet is following, same as a classic solar-system diagram/render
+      const orbitPts = [];
+      const segs = 96;
+      for(let s = 0; s <= segs; s++){
+        const a = (s / segs) * Math.PI * 2;
+        orbitPts.push(new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius));
+      }
+      const orbitLine = new THREE.LineLoop(
+        new THREE.BufferGeometry().setFromPoints(orbitPts),
+        new THREE.LineBasicMaterial({ color:0xe0a045, transparent:true, opacity:0.22 })
+      );
+      orbitLine.rotation.x = tiltX;
+      orbitLine.rotation.z = tiltZ;
+      group.add(orbitLine);
+
+      // the pivot that actually carries the planet around that same path
       const pivot = new THREE.Object3D();
-      pivot.rotation.x = 0.3 + i * 0.22;
-      pivot.rotation.z = i * 2.05;
+      pivot.rotation.x = tiltX;
+      pivot.rotation.z = tiltZ;
       pivot.rotation.y = (i / CLIENTS.length) * Math.PI * 2;
       group.add(pivot);
-      const orbitSpeed = 0.0026 + i * 0.0011;
+      const orbitSpeed = 0.0022 + i * 0.0009;
+      const spinSpeed = 0.014 + i * 0.006;
 
       // a real 3D ball, not a flat cut-out circle - lit so it actually reads
       // as a sphere (a highlight on one side, falling off into shadow on the
       // other), the way an actual little planet would catch light
       const geo = new THREE.SphereGeometry(R, 32, 24);
-      const mat = new THREE.MeshStandardMaterial({ color:0x0a0908, roughness:0.55, metalness:0.08 });
+      const mat = new THREE.MeshStandardMaterial({ color:0x0a0908, roughness:0.5, metalness:0.08, emissive:0x120d08, emissiveIntensity:0.4 });
 
       const planet = new THREE.Mesh(geo, mat);
       planet.position.set(radius, 0, 0);
@@ -347,25 +371,22 @@
       pivot.add(planet);
       tiles.push(planet);
 
-      // counter-spin the planet by exactly the same amount the pivot turns
-      // it each frame (below, in animate()) - rotations about the same axis
-      // cancel out, so the sphere's own facing stays locked instead of
-      // tumbling out of view as it swings around its orbit, while the fixed
-      // tilt above still lets it sit at its own jaunty angle like a real body
-      orbits.push({ pivot, mesh: planet, speed: orbitSpeed });
+      // spins continuously on its own axis, independent of its orbit speed -
+      // this is what makes the logo visibly rotate around the ball and fade
+      // toward the dark side rather than sitting fixed on its surface
+      orbits.push({ pivot, mesh: planet, speed: orbitSpeed, spin: spinSpeed });
 
       loader.load(c.photo, tex=>{ mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; });
 
-      // thin gold rim just outside the sphere's silhouette - Saturn-esque
-      // halo that reinforces the "little planet" feel rather than a flat
-      // cut-out circle
-      const ring = new THREE.Mesh(
-        new THREE.RingGeometry(R + 0.05, R + 0.13, 48),
-        new THREE.MeshBasicMaterial({ color:0xe0a045, transparent:true, opacity:.55, side:THREE.DoubleSide })
+      // soft additive atmosphere glow just outside the sphere - the faint
+      // halo real planet renders get from backlighting
+      const atmosphere = new THREE.Mesh(
+        new THREE.SphereGeometry(R * 1.22, 24, 16),
+        new THREE.MeshBasicMaterial({ color:0xe0a045, transparent:true, opacity:0.16, side:THREE.BackSide })
       );
-      ring.position.set(radius, 0, 0);
-      pivot.add(ring);
-      planet.userData.ring = ring;
+      atmosphere.position.set(radius, 0, 0);
+      pivot.add(atmosphere);
+      planet.userData.ring = atmosphere;
       planet.userData.pair = [planet];
     });
 
@@ -483,12 +504,13 @@
       // each client keeps revolving around the S on its own tilted orbit at
       // its own speed, continuously - independent of dragging/idle-spin,
       // which just changes the angle you're viewing the whole system from.
-      // The planet mesh is counter-spun by the same amount so its own
-      // facing stays put (rotations on the same axis cancel out) instead of
-      // tumbling the logo out of view as it swings around its orbit.
+      // Each planet also spins continuously on its own axis (faster than its
+      // orbit, like a real body's day/night cycle) so the logo keeps turning
+      // into and out of view, fading toward the shadowed side as it goes
+      // rather than sitting fixed on the surface.
       orbits.forEach(o=>{
         o.pivot.rotation.y += o.speed;
-        o.mesh.rotation.y -= o.speed;
+        o.mesh.rotation.y += o.spin;
       });
       if(!dragging){
         velX *= 0.94; velY *= 0.94;
@@ -509,13 +531,14 @@
       const hitId = hit ? hit.object.userData.clientId : null;
       const hoveredId = hovered ? hovered.userData.clientId : null;
       if(hitId !== hoveredId){
-        // uniform scale (not just x/y) - these are real spheres now, so
-        // scaling only two axes would squash them into a flat ellipsoid
+        // uniform scale on every axis - the planet AND its atmosphere glow
+        // are real spheres now, so scaling fewer than all three axes would
+        // squash them into a flat ellipsoid
         if(hovered){ hovered.userData.pair.forEach(m=>m.scale.set(1,1,1)); hovered.userData.ring.scale.set(1,1,1); }
         hovered = hit ? hit.object : null;
         if(hovered){
           hovered.userData.pair.forEach(m=>m.scale.set(1.15,1.15,1.15));
-          hovered.userData.ring.scale.set(1.15,1.15,1);
+          hovered.userData.ring.scale.set(1.15,1.15,1.15);
         }
         if(cursorEl) cursorEl.classList.toggle('grow', !!hovered);
       }
