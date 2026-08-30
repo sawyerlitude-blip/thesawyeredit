@@ -378,13 +378,18 @@
 
       // the pivot that actually carries the planet around that same path -
       // every client starts at the same angle (like Amano's) and shares the
-      // same speed, so all three move in lockstep at the same rotation at
-      // all times, just at their own distance from the S
+      // same speed, but alternating directions - same speed keeps them
+      // perfectly in sync (never drifting apart at different paces), but
+      // starting aligned AND moving the same way kept them stacked on the
+      // same spoke forever. Opposite directions means they immediately
+      // separate from that shared starting angle instead of sitting next to
+      // each other for the whole orbit.
       const pivot = new THREE.Object3D();
       pivot.rotation.x = SHARED_TILT;
       pivot.rotation.y = 0;
       group.add(pivot);
-      const orbitSpeed = SHARED_ORBIT_SPEED;
+      const orbitDir = i % 2 === 0 ? 1 : -1;
+      const orbitSpeed = SHARED_ORBIT_SPEED * orbitDir;
       const spinSpeed = SHARED_SPIN_SPEED;
 
       // a real 3D ball, not a flat cut-out circle - a translucent glassy
