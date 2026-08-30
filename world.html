@@ -63,7 +63,7 @@
 
 <div class="world-hero">
   <canvas id="worldCanvas"></canvas>
-  <video id="worldSVideoSrc" src="assets/videos/s-liquify.mp4" muted playsinline preload="auto" style="display:none"></video>
+  <video id="worldSVideoSrc" src="assets/videos/s-liquify.mp4" muted playsinline preload="auto" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none;left:-9999px;"></video>
   <canvas class="world-s-video" id="worldSVideo" aria-label="S monogram, glossy liquid chrome colors blending together"></canvas>
   <section class="page-head" id="work">
     <div>
@@ -267,10 +267,21 @@
     const isSmallScreen = innerWidth < 760;
     const isTouch = matchMedia('(pointer:coarse)').matches;
 
+    // a fixed camera distance frames the sphere/tiles fine on a wide desktop
+    // viewport, but on a narrow portrait phone screen that same distance
+    // leaves them filling far more of the (much narrower) width, reading as
+    // oversized - pulling the camera back as the viewport gets taller than
+    // it is wide keeps the scene framed at roughly the same relative size on
+    // any screen shape
+    function worldCamDist(){
+      const aspect = innerWidth / innerHeight;
+      return aspect < 1 ? 7.5 * Math.min(2.1, 0.82 / aspect) : 7.5;
+    }
+
     const canvas = document.getElementById('worldCanvas');
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.1, 100);
-    camera.position.z = 7.5;
+    camera.position.z = worldCamDist();
     const renderer = new THREE.WebGLRenderer({ canvas, antialias:!isSmallScreen, alpha:true });
     renderer.setPixelRatio(Math.min(devicePixelRatio, isSmallScreen ? 1.5 : 2));
     renderer.setSize(innerWidth, innerHeight);
@@ -336,7 +347,9 @@
     });
 
     addEventListener('resize', ()=>{
-      camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+      camera.aspect = innerWidth/innerHeight;
+      camera.position.z = worldCamDist();
+      camera.updateProjectionMatrix();
       renderer.setSize(innerWidth, innerHeight);
     });
 
@@ -372,15 +385,23 @@
       const d = img.data;
       for(let y = 0; y < S_CH; y++){
         const frac = y / S_CH;
-        const bottomFade = frac < 0.78 ? 1 : Math.max(0, 1 - (frac - 0.78) / 0.14);
+        // gate the floor-shadow fade by saturation, not just row position - the
+        // shadow is a pale grey blob, so only desaturated pixels down here get
+        // faded, while the letter's own vivid colour stays fully visible even
+        // on frames where the liquid shape dips lower while dragging
+        const bottomFade = frac < 0.74 ? 1 : Math.max(0, 1 - (frac - 0.74) / 0.20);
         const rowStart = y * S_CW * 4;
         for(let x = 0; x < S_CW; x++){
           const i = rowStart + x * 4;
-          const lum = (d[i] + d[i+1] + d[i+2]) / 3;
+          const r = d[i], g = d[i+1], b = d[i+2];
+          const lum = (r + g + b) / 3;
           let a = d[i+3];
           if(lum < 20) a = 0;
           else if(lum < 46) a = Math.round(a * (lum - 20) / 26);
-          d[i+3] = Math.round(a * bottomFade);
+          const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+          const sat = mx <= 0 ? 0 : (mx - mn) / mx;
+          if(sat < 0.16) a = Math.round(a * bottomFade);
+          d[i+3] = a;
         }
       }
       sCtx.putImageData(img, 0, 0);
