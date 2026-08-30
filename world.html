@@ -347,39 +347,6 @@
     // seen at a few dozen pixels across - so this costs nothing extra per
     // planet and stays fast)
     const universeTex = loader.load('assets/planet-universe.jpg');
-    // a tiny constellation - a handful of star points connected to their
-    // nearest neighbours with thin gold lines - built once per planet from
-    // only a few points/segments, so it's essentially free to render
-    const starMat = new THREE.PointsMaterial({ color:0xfff3d6, size:0.05, sizeAttenuation:true, transparent:true, depthWrite:false, depthTest:false });
-    const constellationLineMat = new THREE.LineBasicMaterial({ color:0xe0a045, transparent:true, opacity:0.45, depthWrite:false, depthTest:false });
-    function buildConstellation(R){
-      const grp = new THREE.Group();
-      const starR = R * 0.8;
-      const n = 7;
-      const pts = [];
-      for(let k = 0; k < n; k++) pts.push(randomInSphere(starR));
-      const stars = new THREE.Points(new THREE.BufferGeometry().setFromPoints(pts), starMat);
-      stars.renderOrder = 3;
-      grp.add(stars);
-      // connect each star to its two nearest neighbours to trace a simple
-      // constellation pattern rather than a random scatter of dots
-      const linePts = [];
-      pts.forEach((p, idx)=>{
-        const order = pts
-          .map((q, j)=> [j === idx ? Infinity : p.distanceTo(q), j])
-          .sort((a, b)=> a[0] - b[0]);
-        for(let k = 0; k < 2; k++){
-          const j = order[k][1];
-          if(j > idx) linePts.push(p, pts[j]);
-        }
-      });
-      if(linePts.length){
-        const lines = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(linePts), constellationLineMat);
-        lines.renderOrder = 3;
-        grp.add(lines);
-      }
-      return grp;
-    }
     // a real orrery/solar-system layout - each client sits at its own
     // increasing distance from the centre (like Mercury/Venus/Earth), on a
     // nearly-flat, slightly-varied plane (real planetary orbits are all
@@ -462,7 +429,6 @@
       planet.userData = { clientId:c.id, name:c.name };
       pivot.add(planet);
       tiles.push(planet);
-      planet.add(buildConstellation(R));
 
       // spins continuously on its own axis, independent of its orbit speed
       orbits.push({ pivot, mesh: planet, speed: orbitSpeed, spin: spinSpeed });
@@ -557,6 +523,25 @@
       sSeeking = true;
       sVideo.currentTime = t;
     }
+    // same ping-pong bounce as the Home hero - the filmed clip only covers
+    // one rotation arc, not a full loop back to its starting angle, so
+    // bouncing between the two ends (rather than clamping, or wrapping with
+    // a visible jump-cut) is what lets both the drag AND the idle auto-spin
+    // below "keep turning" indefinitely without ever hitting a hard wall
+    function sPingPong(t, len){
+      if(len <= 0) return 0;
+      const period = len * 2;
+      let m = t % period;
+      if(m < 0) m += period;
+      return m <= len ? m : period - m;
+    }
+    let sRawDrag = 0;
+    // the S at the centre of the scene is the "sun" every client orbits, so
+    // it reads oddly sitting perfectly still - this slowly and continuously
+    // advances it even with no one dragging, same idea as the group's own
+    // 0.0014 idle-spin just below, just applied to the video timeline
+    // instead of a mesh rotation
+    const S_IDLE_SPEED = 0.0022;
     if(sVideo){
       function sOnReady(){ sDuration = sVideo.duration || sDuration; sDrawFrame(); }
       sVideo.addEventListener('loadedmetadata', sOnReady);
@@ -593,8 +578,8 @@
         velY = dx*0.006; velX = dy*0.006;
         group.rotation.y += velY; group.rotation.x += velX;
         if(sVideo && sDuration){
-          const t = (sPendingT !== null ? sPendingT : sVideo.currentTime) + dx * 0.008;
-          sRequestSeek(Math.max(0, Math.min(sDuration, t)));
+          sRawDrag += dx * 0.008;
+          sRequestSeek(sPingPong(sRawDrag, sDuration));
         }
       }
     });
@@ -658,6 +643,14 @@
         group.rotation.y += velY + 0.0014;
         group.rotation.x += velX;
         group.rotation.x = Math.max(-0.5, Math.min(0.5, group.rotation.x));
+        // the central S keeps slowly turning on its own whenever it isn't
+        // being actively dragged - it's the "sun" of the system, so it
+        // shouldn't be the one thing standing still while everything orbits
+        // it. Paused during a drag so it doesn't fight the direct scrub.
+        if(sVideo && sDuration){
+          sRawDrag += S_IDLE_SPEED;
+          sRequestSeek(sPingPong(sRawDrag, sDuration));
+        }
       }
       // touch has no real "hover", so skip the per-frame raycast/scale-up/
       // label work entirely there - it was pure wasted CPU every frame on

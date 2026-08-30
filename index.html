@@ -206,18 +206,42 @@
     }
 
     let dragging = false, lastPX = 0, rawDrag = 0, vel = 0, coasting = false;
+    // the raw pointer target and what's actually seeked to are now two
+    // separate numbers: rawDrag jumps straight to wherever the pointer is,
+    // but displayDrag glides toward it a little at a time every frame. Fast
+    // or uneven pointermove bursts (very common, especially on touchscreens)
+    // used to translate directly into a seek each time, which could feel a
+    // little jerky if the browser's seek/decode couldn't quite keep pace -
+    // easing the value that's actually drawn smooths that out regardless of
+    // how choppy the raw input is.
+    let displayDrag = 0, driving = false;
+    function driveTick(){
+      displayDrag += (rawDrag - displayDrag) * 0.35;
+      requestSeek(pingPong(displayDrag, duration));
+      if(dragging || coasting || Math.abs(rawDrag - displayDrag) > 0.0004){
+        requestAnimationFrame(driveTick);
+      } else {
+        driving = false;
+      }
+    }
+    function ensureDriving(){
+      if(!driving){ driving = true; requestAnimationFrame(driveTick); }
+    }
     function coastTick(){
       if(!coasting) return;
       vel *= 0.93;
       rawDrag += vel;
-      requestSeek(pingPong(rawDrag, duration));
       if(Math.abs(vel) < 0.0006){ coasting = false; return; }
       requestAnimationFrame(coastTick);
     }
     stage.addEventListener('pointerdown', e=>{
       if(!duration) return;
+      // guard against a still-resolving priming play() (see above) fighting
+      // a seek the instant a drag starts
+      video.pause();
       dragging = true; coasting = false; lastPX = e.clientX; vel = 0;
       stage.setPointerCapture(e.pointerId);
+      ensureDriving();
     });
     stage.addEventListener('pointermove', e=>{
       if(!dragging || !duration) return;
@@ -226,14 +250,13 @@
       const step = dx * 0.008;
       rawDrag += step;
       vel = vel * 0.6 + step * 0.4;
-      requestSeek(pingPong(rawDrag, duration));
     });
     const stopDrag = ()=>{
       if(!dragging) return;
       dragging = false;
       // a little momentum on release - the S keeps turning and eases to a
       // stop instead of dead-stopping the instant you lift your finger
-      if(Math.abs(vel) > 0.0008){ coasting = true; requestAnimationFrame(coastTick); }
+      if(Math.abs(vel) > 0.0008){ coasting = true; requestAnimationFrame(coastTick); ensureDriving(); }
     };
     stage.addEventListener('pointerup', stopDrag);
     stage.addEventListener('pointerleave', stopDrag);
