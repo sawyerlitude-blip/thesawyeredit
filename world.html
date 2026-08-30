@@ -275,7 +275,10 @@
     // any screen shape
     function worldCamDist(){
       const aspect = innerWidth / innerHeight;
-      return aspect < 1 ? 7.5 * Math.min(2.1, 0.82 / aspect) : 7.5;
+      // pulled back a bit further than before (9.5 vs 7.5) so the whole
+      // scene reads as a smaller background element behind the hero text
+      // rather than filling the viewport
+      return aspect < 1 ? 9.5 * Math.min(2.1, 0.82 / aspect) : 9.5;
     }
 
     const canvas = document.getElementById('worldCanvas');
@@ -287,7 +290,7 @@
     renderer.setSize(innerWidth, innerHeight);
 
     // faint wireframe sphere - the "world" grid (fewer segments on phones)
-    const wireMat = new THREE.MeshBasicMaterial({ color:0xe0a045, wireframe:true, transparent:true, opacity:.12 });
+    const wireMat = new THREE.MeshBasicMaterial({ color:0xe0a045, wireframe:true, transparent:true, opacity:.2 });
     scene.add(new THREE.Mesh(new THREE.SphereGeometry(3.1, isSmallScreen ? 16 : 22, isSmallScreen ? 10 : 14), wireMat));
 
     const group = new THREE.Group();
@@ -332,15 +335,51 @@
     }
     // a gold duotone version of the same butterfly sprite (same shape, its
     // colours remapped to the site's own gold accent) - reads better against
-    // the planet's own dark blue glass than the multicolour ambient version
+    // the planet's own dark blue glass than the multicolour ambient version.
+    // depthTest is off as well as depthWrite here - belt and braces on top of
+    // the renderOrder below, so nothing in the scene can ever hide these,
+    // guaranteeing they're always visibly flying, never disappearing.
     const butterflyTex = loader.load('assets/butterfly-gold.png');
-    const butterflyMat = new THREE.SpriteMaterial({ map: butterflyTex, transparent:true, depthWrite:false });
+    const butterflyMat = new THREE.SpriteMaterial({ map: butterflyTex, transparent:true, depthWrite:false, depthTest:false });
     const BUTTERFLY_ASPECT = 324 / 369;
     // one small, shared starfield texture loaded once and reused by every
     // planet's shell (a tiny 256x328 jpeg - plenty for something only ever
     // seen at a few dozen pixels across - so this costs nothing extra per
     // planet and stays fast)
     const universeTex = loader.load('assets/planet-universe.jpg');
+    // a tiny constellation - a handful of star points connected to their
+    // nearest neighbours with thin gold lines - built once per planet from
+    // only a few points/segments, so it's essentially free to render
+    const starMat = new THREE.PointsMaterial({ color:0xfff3d6, size:0.05, sizeAttenuation:true, transparent:true, depthWrite:false, depthTest:false });
+    const constellationLineMat = new THREE.LineBasicMaterial({ color:0xe0a045, transparent:true, opacity:0.45, depthWrite:false, depthTest:false });
+    function buildConstellation(R){
+      const grp = new THREE.Group();
+      const starR = R * 0.8;
+      const n = 7;
+      const pts = [];
+      for(let k = 0; k < n; k++) pts.push(randomInSphere(starR));
+      const stars = new THREE.Points(new THREE.BufferGeometry().setFromPoints(pts), starMat);
+      stars.renderOrder = 3;
+      grp.add(stars);
+      // connect each star to its two nearest neighbours to trace a simple
+      // constellation pattern rather than a random scatter of dots
+      const linePts = [];
+      pts.forEach((p, idx)=>{
+        const order = pts
+          .map((q, j)=> [j === idx ? Infinity : p.distanceTo(q), j])
+          .sort((a, b)=> a[0] - b[0]);
+        for(let k = 0; k < 2; k++){
+          const j = order[k][1];
+          if(j > idx) linePts.push(p, pts[j]);
+        }
+      });
+      if(linePts.length){
+        const lines = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(linePts), constellationLineMat);
+        lines.renderOrder = 3;
+        grp.add(lines);
+      }
+      return grp;
+    }
     // a real orrery/solar-system layout - each client sits at its own
     // increasing distance from the centre (like Mercury/Venus/Earth), on a
     // nearly-flat, slightly-varied plane (real planetary orbits are all
@@ -378,7 +417,7 @@
       }
       const orbitLine = new THREE.LineLoop(
         new THREE.BufferGeometry().setFromPoints(orbitPts),
-        new THREE.LineBasicMaterial({ color:0xe0a045, transparent:true, opacity:0.22 })
+        new THREE.LineBasicMaterial({ color:0xe0a045, transparent:true, opacity:0.34 })
       );
       orbitLine.rotation.x = SHARED_TILT;
       group.add(orbitLine);
@@ -413,9 +452,9 @@
       // staying constantly visible.
       const geo = new THREE.SphereGeometry(R, 32, 24);
       const mat = new THREE.MeshPhysicalMaterial({
-        color:0x0a1a33, map:universeTex, transparent:true, opacity:0.55,
+        color:0x0a1a33, map:universeTex, transparent:true, opacity:0.7,
         roughness:0.2, metalness:0, clearcoat:0.6, clearcoatRoughness:0.25,
-        emissive:0x081226, emissiveIntensity:0.6, depthWrite:false
+        emissive:0x0a1c38, emissiveIntensity:0.75, depthWrite:false
       });
 
       const planet = new THREE.Mesh(geo, mat);
@@ -423,6 +462,7 @@
       planet.userData = { clientId:c.id, name:c.name };
       pivot.add(planet);
       tiles.push(planet);
+      planet.add(buildConstellation(R));
 
       // spins continuously on its own axis, independent of its orbit speed
       orbits.push({ pivot, mesh: planet, speed: orbitSpeed, spin: spinSpeed });
@@ -442,7 +482,7 @@
         // always draw after (on top of) the shell, regardless of distance
         // sorting - belt-and-braces on top of the depthWrite fix above, so
         // the butterflies genuinely never disappear behind the glass
-        spr.renderOrder = 2;
+        spr.renderOrder = 4;
         planet.add(spr);
         butterflies.push({ sprite:spr, target:randomInSphere(bMax), maxR:bMax, speed:0.008 + Math.random() * 0.007 });
       }
@@ -451,7 +491,7 @@
       // halo real planet renders get from backlighting
       const atmosphere = new THREE.Mesh(
         new THREE.SphereGeometry(R * 1.22, 24, 16),
-        new THREE.MeshBasicMaterial({ color:0xe0a045, transparent:true, opacity:0.16, side:THREE.BackSide, depthWrite:false })
+        new THREE.MeshBasicMaterial({ color:0xe0a045, transparent:true, opacity:0.24, side:THREE.BackSide, depthWrite:false })
       );
       atmosphere.position.set(radius, 0, 0);
       pivot.add(atmosphere);
