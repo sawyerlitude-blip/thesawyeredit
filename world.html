@@ -295,8 +295,15 @@
 
     // S monogram at the core is now a real DOM <video> overlay (see
     // #worldSVideo below and its drag-scrub script), the same asset as the
-    // Home hero, instead of a hand-built 3D shape - so no extruded geometry,
-    // lights or S-shape data are needed here any more.
+    // Home hero, instead of a hand-built 3D shape - so no extruded geometry
+    // or S-shape data are needed here any more. A couple of lights are
+    // needed now though - the client tiles below are real lit spheres (not
+    // flat unlit circles), and without any light in the scene a lit material
+    // just renders solid black.
+    scene.add(new THREE.HemisphereLight(0xfff3e0, 0x14110c, 0.85));
+    const sunLight = new THREE.DirectionalLight(0xffe8c2, 1.15);
+    sunLight.position.set(4, 3.2, 5);
+    scene.add(sunLight);
 
     // three client tiles, each genuinely orbiting the S at its own core - not
     // just glued to fixed points on the sphere's surface (which only ever
@@ -327,43 +334,39 @@
       pivot.rotation.y = (i / CLIENTS.length) * Math.PI * 2;
       group.add(pivot);
       const orbitSpeed = 0.0026 + i * 0.0011;
-      orbits.push({ pivot, speed: orbitSpeed });
 
-      const geo = new THREE.CircleGeometry(R, 48);
-      const mat = new THREE.MeshBasicMaterial({ color:0x0a0908, transparent:true, opacity:.98 });
+      // a real 3D ball, not a flat cut-out circle - lit so it actually reads
+      // as a sphere (a highlight on one side, falling off into shadow on the
+      // other), the way an actual little planet would catch light
+      const geo = new THREE.SphereGeometry(R, 32, 24);
+      const mat = new THREE.MeshStandardMaterial({ color:0x0a0908, roughness:0.55, metalness:0.08 });
 
-      // front-facing badge, offset out along its pivot's local X axis - as
-      // the pivot spins on its tilted axis every frame, this traces out a
-      // real inclined orbit path around the centre
-      const front = new THREE.Mesh(geo, mat);
-      front.position.set(radius, 0, 0);
-      front.userData = { clientId:c.id, name:c.name };
-      pivot.add(front);
-      tiles.push(front);
+      const planet = new THREE.Mesh(geo, mat);
+      planet.position.set(radius, 0, 0);
+      planet.userData = { clientId:c.id, name:c.name };
+      pivot.add(planet);
+      tiles.push(planet);
 
-      // a second badge rotated 180° behind it, sharing the same material -
-      // so whichever side of the orbit is facing the camera, you still see
-      // the logo the right way round instead of it vanishing (single-sided
-      // planes are invisible from behind) or mirroring.
-      const back = new THREE.Mesh(geo, mat);
-      back.position.set(radius, 0, -0.006);
-      back.rotation.y = Math.PI;
-      back.userData = front.userData;
-      pivot.add(back);
-      tiles.push(back);
+      // counter-spin the planet by exactly the same amount the pivot turns
+      // it each frame (below, in animate()) - rotations about the same axis
+      // cancel out, so the sphere's own facing stays locked instead of
+      // tumbling out of view as it swings around its orbit, while the fixed
+      // tilt above still lets it sit at its own jaunty angle like a real body
+      orbits.push({ pivot, mesh: planet, speed: orbitSpeed });
 
       loader.load(c.photo, tex=>{ mat.map = tex; mat.color.set(0xffffff); mat.needsUpdate = true; });
 
-      // thin gold rim right at the badge's edge - gives each client tile a
-      // "little planet" / medallion feel instead of a flat cut-out circle
+      // thin gold rim just outside the sphere's silhouette - Saturn-esque
+      // halo that reinforces the "little planet" feel rather than a flat
+      // cut-out circle
       const ring = new THREE.Mesh(
-        new THREE.RingGeometry(R, R + 0.08, 48),
-        new THREE.MeshBasicMaterial({ color:0xe0a045, transparent:true, opacity:.6, side:THREE.DoubleSide })
+        new THREE.RingGeometry(R + 0.05, R + 0.13, 48),
+        new THREE.MeshBasicMaterial({ color:0xe0a045, transparent:true, opacity:.55, side:THREE.DoubleSide })
       );
-      ring.position.set(radius, 0, -0.01);
+      ring.position.set(radius, 0, 0);
       pivot.add(ring);
-      front.userData.ring = ring;
-      front.userData.pair = [front, back];
+      planet.userData.ring = ring;
+      planet.userData.pair = [planet];
     });
 
     addEventListener('resize', ()=>{
@@ -479,8 +482,14 @@
       camera.lookAt(0, 0, 0);
       // each client keeps revolving around the S on its own tilted orbit at
       // its own speed, continuously - independent of dragging/idle-spin,
-      // which just changes the angle you're viewing the whole system from
-      orbits.forEach(o=>{ o.pivot.rotation.y += o.speed; });
+      // which just changes the angle you're viewing the whole system from.
+      // The planet mesh is counter-spun by the same amount so its own
+      // facing stays put (rotations on the same axis cancel out) instead of
+      // tumbling the logo out of view as it swings around its orbit.
+      orbits.forEach(o=>{
+        o.pivot.rotation.y += o.speed;
+        o.mesh.rotation.y -= o.speed;
+      });
       if(!dragging){
         velX *= 0.94; velY *= 0.94;
         group.rotation.y += velY + 0.0014;
@@ -493,18 +502,19 @@
       // tapping already opens a client directly via the click handler above
       if(!isTouch){
       // compare by clientId rather than exact object reference - the front
-      // and back badge swap which one the raycaster actually hits as the
-      // sphere spins through an edge-on angle, and they should be treated
-      // as a single hoverable tile rather than flickering in and out
+      // compare by clientId rather than exact object reference for future-
+      // proofing (kept even now that each client is a single sphere mesh)
       raycaster.setFromCamera(mouseNDC, camera);
       const hit = raycaster.intersectObjects(tiles)[0];
       const hitId = hit ? hit.object.userData.clientId : null;
       const hoveredId = hovered ? hovered.userData.clientId : null;
       if(hitId !== hoveredId){
+        // uniform scale (not just x/y) - these are real spheres now, so
+        // scaling only two axes would squash them into a flat ellipsoid
         if(hovered){ hovered.userData.pair.forEach(m=>m.scale.set(1,1,1)); hovered.userData.ring.scale.set(1,1,1); }
         hovered = hit ? hit.object : null;
         if(hovered){
-          hovered.userData.pair.forEach(m=>m.scale.set(1.15,1.15,1));
+          hovered.userData.pair.forEach(m=>m.scale.set(1.15,1.15,1.15));
           hovered.userData.ring.scale.set(1.15,1.15,1);
         }
         if(cursorEl) cursorEl.classList.toggle('grow', !!hovered);
