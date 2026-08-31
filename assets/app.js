@@ -102,6 +102,16 @@
 (function(){
   const canvas = document.getElementById('petalCanvas');
   if(!canvas) return;
+  // desktop-only effect now - phones keep the butterflies that live inside
+  // the S World planets (a handful of lightweight Three.js sprites) but lose
+  // this ambient cursor-trailing swarm entirely, since a permanent
+  // requestAnimationFrame loop drawing dozens of filtered sprites every
+  // frame was a real, constant performance cost on top of everything else
+  // a phone is already doing on this site - bailing out here before the
+  // canvas, its resize/pointermove listeners, or the render loop are ever
+  // created means mobile pays nothing at all for this, not even a reduced
+  // version of it
+  if(window.innerWidth < 760) { canvas.remove(); return; }
   const ctx = canvas.getContext('2d');
   const butterflyImg = new Image();
   let imgReady = false;
@@ -110,9 +120,7 @@
 
   let w, h, dpr;
   function resize(){
-    // capping the pixel ratio lower on phones trades a touch of sharpness
-    // for meaningfully less canvas fill-rate to push every frame
-    dpr = Math.min(window.devicePixelRatio || 1, window.innerWidth < 760 ? 1.5 : 2);
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
     w = window.innerWidth; h = window.innerHeight;
     canvas.width = w * dpr; canvas.height = h * dpr;
     canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
@@ -131,18 +139,7 @@
   });
   window.addEventListener('pointerleave', ()=>{ mouseOnPage = false; });
 
-  // phones get fewer sprites, and skip the per-sprite hue/brightness canvas
-  // filter entirely below - ctx.filter is CPU-bound (not GPU-accelerated) in
-  // most mobile browsers, and re-applying a different filter per sprite per
-  // frame for a hundred-plus sprites was the single biggest source of jank
-  // on phones. Desktop keeps the full, richer effect.
-  const isSmallScreen = window.innerWidth < 760;
-  // the landing page already has the big interactive S taking up the screen,
-  // so on phones the full ambient swarm on top of it reads as cluttered -
-  // cut it down hard there specifically, while other mobile pages (which
-  // don't have that competing focal point) keep the fuller 70
-  const isLanding = document.body.classList.contains('scroll-locked');
-  const COUNT = isSmallScreen ? (isLanding ? 22 : 70) : 220;
+  const COUNT = 220;
   const petals = [];
   const aspect = 369/324; // butterfly sprite's own width/height ratio
   for(let i=0;i<COUNT;i++){
@@ -172,7 +169,7 @@
     ctx.rotate(p.heading);
     ctx.scale(1, wingScale);
     ctx.globalAlpha = Math.min(1, 0.5 * p.depth + 0.35);
-    if(!isSmallScreen) ctx.filter = p.filterStr;
+    ctx.filter = p.filterStr;
     const hgt = p.size * 2;
     const wid = hgt * aspect;
     ctx.drawImage(butterflyImg, -wid/2, -hgt/2, wid, hgt);
