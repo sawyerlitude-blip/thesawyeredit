@@ -318,7 +318,30 @@
     loader.crossOrigin = 'anonymous';
     const tiles = [];
     const orbits = [];
+    const butterflies = [];
 
+    // uniform-by-volume random point inside a sphere of the given radius
+    // (cube-root radius scaling, not plain Math.random()*maxR, avoids
+    // clumping every point toward the centre)
+    function randomInSphere(maxR){
+      const r = maxR * Math.cbrt(Math.random());
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      return new THREE.Vector3(
+        r * Math.sin(phi) * Math.cos(theta),
+        r * Math.sin(phi) * Math.sin(theta),
+        r * Math.cos(phi)
+      );
+    }
+    // a gold duotone version of the same butterfly sprite (same shape, its
+    // colours remapped to the site's own gold accent) - reads better against
+    // the planet's own dark blue glass than the multicolour ambient version.
+    // depthTest is off as well as depthWrite here - belt and braces on top of
+    // the renderOrder below, so nothing in the scene can ever hide these,
+    // guaranteeing they're always visibly flying, never disappearing.
+    const butterflyTex = loader.load('assets/butterfly-gold.png');
+    const butterflyMat = new THREE.SpriteMaterial({ map: butterflyTex, transparent:true, depthWrite:false, depthTest:false });
+    const BUTTERFLY_ASPECT = 324 / 369;
     // one small, shared starfield texture loaded once and reused by every
     // planet's shell (a tiny 256x328 jpeg - plenty for something only ever
     // seen at a few dozen pixels across - so this costs nothing extra per
@@ -389,8 +412,11 @@
       // multiplies over the starfield map, darkening it further and tinting
       // it to match, and the emissive keeps that reading consistently on
       // every side rather than only wherever the light lands. depthWrite is
-      // off so this transparent shell never fights other transparent
-      // elements in the scene over draw order.
+      // off, same as the butterfly sprites - without that, this shell (being
+      // drawn with normal depth writes despite being transparent) was
+      // intermittently hiding the butterflies behind its own near surface
+      // depending on the angle, making them flicker in and out instead of
+      // staying constantly visible.
       const geo = new THREE.SphereGeometry(R, 32, 24);
       const mat = new THREE.MeshPhysicalMaterial({
         color:0x0a1a33, map:universeTex, transparent:true, opacity:0.7,
@@ -406,6 +432,26 @@
 
       // spins continuously on its own axis, independent of its orbit speed
       orbits.push({ pivot, mesh: planet, speed: orbitSpeed, spin: spinSpeed });
+
+      // a couple of tiny butterflies flying around INSIDE the glass shell,
+      // wandering toward a random point within the sphere and picking a new
+      // one on arrival - genuinely trapped/fluttering within the ball's own
+      // volume rather than crossing its walls, same "locked" wandering
+      // feeling as the butterflies inside the S itself
+      const bMax = R * 0.6;
+      const butterflyCount = isSmallScreen ? 2 : 3;
+      for(let b = 0; b < butterflyCount; b++){
+        const spr = new THREE.Sprite(butterflyMat);
+        const sSize = R * (isSmallScreen ? 0.4 : 0.46);
+        spr.scale.set(sSize, sSize * BUTTERFLY_ASPECT, 1);
+        spr.position.copy(randomInSphere(bMax));
+        // always draw after (on top of) the shell, regardless of distance
+        // sorting - belt-and-braces on top of the depthWrite fix above, so
+        // the butterflies genuinely never disappear behind the glass
+        spr.renderOrder = 4;
+        planet.add(spr);
+        butterflies.push({ sprite:spr, target:randomInSphere(bMax), maxR:bMax, speed:0.008 + Math.random() * 0.007 });
+      }
 
       // soft additive atmosphere glow just outside the sphere - the faint
       // halo real planet renders get from backlighting
@@ -430,6 +476,7 @@
     // used for the CSS-driven S on the Home hero
     let dragging=false, prevX=0, prevY=0, velX=0, velY=0;
     const raycaster = new THREE.Raycaster();
+    const _bDir = new THREE.Vector3(); // scratch vector reused by the in-planet butterfly wander loop below
     const mouseNDC = new THREE.Vector2(-10,-10);
     const parallax = new THREE.Vector2(0,0);
     let hovered = null;
@@ -575,6 +622,21 @@
       orbits.forEach(o=>{
         o.pivot.rotation.y += o.speed;
         o.mesh.rotation.y += o.spin;
+      });
+      // butterflies inside each planet drift toward their current target
+      // point and pick a new random one on arrival - always staying within
+      // that planet's own bMax radius, so they wander freely but never
+      // escape the glass shell
+      butterflies.forEach(bu=>{
+        const spr = bu.sprite;
+        _bDir.subVectors(bu.target, spr.position);
+        const dist = _bDir.length();
+        if(dist < 0.025){
+          bu.target = randomInSphere(bu.maxR);
+        } else {
+          _bDir.normalize().multiplyScalar(Math.min(bu.speed, dist));
+          spr.position.add(_bDir);
+        }
       });
       if(!dragging){
         velX *= 0.94; velY *= 0.94;

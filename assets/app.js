@@ -102,6 +102,11 @@
 (function(){
   const canvas = document.getElementById('petalCanvas');
   if(!canvas) return;
+  // the S World page has its own butterflies living inside the 3D planets
+  // (and inside the central S), so this separate ambient swarm on top of
+  // that scene was simply too much - bail out here whenever the world's own
+  // canvas is present, leaving the ambient swarm for every other page
+  if(document.getElementById('worldCanvas')) { canvas.remove(); return; }
   // desktop-only effect now - phones keep the butterflies that live inside
   // the S World planets (a handful of lightweight Three.js sprites) but lose
   // this ambient cursor-trailing swarm entirely, since a permanent
