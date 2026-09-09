@@ -120,7 +120,28 @@
   const ctx = canvas.getContext('2d');
   const butterflyImg = new Image();
   let imgReady = false;
-  butterflyImg.onload = ()=>{ imgReady = true; };
+  // ctx.filter (hue-rotate/brightness/saturate) is one of the most expensive
+  // canvas 2D operations there is, and every one of these petals used to set
+  // its own unique filter string and re-apply it on every single drawImage,
+  // every frame, forever - 220 live filter recomputations per frame just to
+  // get 220 static colour variants of the same source image. Baking each
+  // petal's already-tinted sprite into its own small offscreen canvas once,
+  // right when the image finishes loading, turns that into a single cheap
+  // drawImage per petal at render time (no filter, no recompute) - same
+  // look, a fraction of the cost.
+  function bakeTintedSprite(filterStr){
+    const bw = 96, bh = Math.round(bw * (369/324));
+    const off = document.createElement('canvas');
+    off.width = bw; off.height = bh;
+    const octx = off.getContext('2d');
+    octx.filter = filterStr;
+    octx.drawImage(butterflyImg, 0, 0, bw, bh);
+    return off;
+  }
+  butterflyImg.onload = ()=>{
+    imgReady = true;
+    petals.forEach(p => { p.sprite = bakeTintedSprite(p.filterStr); });
+  };
   butterflyImg.src = 'assets/butterfly.png';
 
   let w, h, dpr;
@@ -168,16 +189,15 @@
 
   let lastTime = performance.now();
   function drawPetal(p, wingScale){
-    if(!imgReady) return;
+    if(!imgReady || !p.sprite) return;
     ctx.save();
     ctx.translate(p.x, p.y);
     ctx.rotate(p.heading);
     ctx.scale(1, wingScale);
     ctx.globalAlpha = Math.min(1, 0.5 * p.depth + 0.35);
-    ctx.filter = p.filterStr;
     const hgt = p.size * 2;
     const wid = hgt * aspect;
-    ctx.drawImage(butterflyImg, -wid/2, -hgt/2, wid, hgt);
+    ctx.drawImage(p.sprite, -wid/2, -hgt/2, wid, hgt);
     ctx.restore();
   }
 
