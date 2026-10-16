@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Sawyer Edit | Social Media Manager &amp; Content Creator for Hospitality Brands in London</title>
+<meta name="description" content="London-based social media manager and content creator for hotels, restaurants and pubs. Reels, brand films and storytelling that grows real community - see the work behind AMANO Group, Aubaine and more.">
+<meta name="author" content="Salim Akan">
+<link rel="canonical" href="https://thesawyeredit.com/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="The Sawyer Edit | Social Media &amp; Content Creator for Hospitality Brands">
+<meta property="og:description" content="London-based social media manager and content creator for hotels, restaurants and pubs - reels, brand films and storytelling that grows real community.">
+<meta property="og:image" content="https://thesawyeredit.com/images/s-original.png">
+<meta property="og:url" content="https://thesawyeredit.com/">
+<meta property="og:locale" content="en_GB">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The Sawyer Edit | Social Media &amp; Content Creator for Hospitality Brands">
+<meta name="twitter:description" content="London-based social media manager and content creator for hotels, restaurants and pubs - reels, brand films and storytelling that grows real community.">
+<meta name="twitter:image" content="https://thesawyeredit.com/images/s-original.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  "name": "The Sawyer Edit",
+  "founder": { "@type": "Person", "name": "Salim Akan" },
+  "description": "Social media management and content creation for hospitality brands - hotels, restaurants and pubs - in London.",
+  "areaServed": { "@type": "City", "name": "London" },
+  "serviceType": ["Social media management", "Content creation", "Video production"],
+  "email": "thesawyeredit@gmail.com",
+  "url": "https://thesawyeredit.com/"
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Playfair+Display:ital@1&family=Bebas+Neue&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body class="scroll-locked">
+
+<canvas id="petalCanvas"></canvas>
+<div class="cursor" id="cursor"></div>
+
+<nav>
+  <a href="index.html" class="mark" data-transition data-label="Loading Home —">
+    <div class="mark-badge">S</div>
+    <div class="mark-text">THE SAWYER EDIT</div>
+  </a>
+  <button class="menu-btn" id="menuOpenBtn">
+    Menu
+    <span class="dot"><span></span></span>
+  </button>
+</nav>
+
+<div class="menu-overlay" id="menuOverlay">
+  <div class="menu-panel">
+    <div>
+      <button class="menu-close" id="menuCloseBtn">✕</button>
+      <nav class="menu-nav">
+        <a href="index.html" class="current"><span class="num">01</span>Home</a>
+        <a href="world.html" data-transition data-label="Loading S World —"><span class="num">02</span>Work</a>
+        <a href="about.html" data-transition data-label="Loading About —"><span class="num">03</span>About</a>
+        <a href="contact.html" data-transition data-label="Loading Contact —"><span class="num">04</span>Contact</a>
+      </nav>
+    </div>
+    <div class="menu-footer">
+      <a href="https://www.instagram.com/thesawyeredit/" target="_blank" rel="noopener">Instagram</a>
+      <a href="mailto:thesawyeredit@gmail.com">Email</a>
+    </div>
+  </div>
+</div>
+
+<div class="wipe" id="wipe">Loading —</div>
+
+<section class="hero" id="heroA">
+  <div class="hero-bg" id="heroBg" aria-hidden="true"></div>
+  <div class="hero-a-top">
+    <div class="hero-a-eyebrow-top">London · Hospitality content</div>
+    <div class="hero-a-title">THE SAWYER <em>Edit</em></div>
+  </div>
+  <div class="hero-glow" id="heroGlow"></div>
+  <div class="hero-s-stage" id="heroSStage">
+    <video id="heroSVideoSrc" src="assets/videos/s-liquify-v2.mp4" muted playsinline preload="auto" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;overflow:hidden;pointer-events:none;"></video>
+    <canvas class="hero-s-canvas" id="heroSCanvas" aria-label="The Sawyer Edit - S monogram, glossy liquid chrome colors blending together"></canvas>
+  </div>
+  <div class="hero-a-inner">
+    <a href="world.html" class="pill-btn" data-transition data-label="Loading S World —" id="viewWorkBtn">
+      <span class="txt"><span>Explore S World</span><span class="clone">Explore S World</span></span>
+      <span class="arrow">→</span>
+    </a>
+    <div class="drag-hint">Drag to rotate</div>
+  </div>
+  <div class="hero-marquee">
+    <div class="hero-marquee-label">Venues &amp; brands I work with</div>
+    <div class="hero-marquee-track">
+      <span>AMANO Group</span><span>Aubaine</span><span>The Rising Sun Belgravia</span><span>The Brunel</span><span>The Garratt Tavern</span>
+      <span>AMANO Group</span><span>Aubaine</span><span>The Rising Sun Belgravia</span><span>The Brunel</span><span>The Garratt Tavern</span>
+    </div>
+  </div>
+</section>
+
+<script src="assets/app.js"></script>
+<script>
+  // S monogram - a real AI-rendered glossy liquid-chrome S. It's a video,
+  // but drawn onto a canvas frame-by-frame rather than shown directly, so
+  // the black background can be keyed out to real per-pixel transparency
+  // (a CSS mix-blend-mode was tried first, but this element sits inside a
+  // transformed/z-indexed parent, which isolates its own stacking context
+  // and blend modes can't reach through that to the real page background -
+  // it just showed a black box). The same per-pixel pass also fades out the
+  // soft floor-shadow baked into the bottom of the clip. It does NOT auto-play
+  // or auto-rotate - it's a static frame that only moves while you're
+  // actively dragging it, scrubbing through the clip's timeline.
+  (function(){
+    const stage = document.getElementById('heroSStage');
+    const video = document.getElementById('heroSVideoSrc');
+    const canvas = document.getElementById('heroSCanvas');
+    if(!stage || !video || !canvas) return;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+    const CW = 500, CH = Math.round(CW * video.videoHeight / video.videoWidth || CW * 1.245);
+    canvas.width = CW; canvas.height = CH;
+
+    function drawFrame(){
+      if(!video.videoWidth) return;
+      ctx.clearRect(0, 0, CW, CH);
+      ctx.drawImage(video, 0, 0, CW, CH);
+      const img = ctx.getImageData(0, 0, CW, CH);
+      const d = img.data;
+      // only the true black background gets keyed out (hard cut below lum 20,
+      // soft feather from 20-46 for a clean anti-aliased edge) - no row-based
+      // or saturation-based bottom fade any more, so every bit of the
+      // letter's own contour stays fully visible all the way to its true
+      // bottom edge, on every dragged frame
+      for(let i = 0; i < d.length; i += 4){
+        const lum = (d[i] + d[i+1] + d[i+2]) / 3;
+        if(lum < 20) d[i+3] = 0;
+        else if(lum < 46) d[i+3] = Math.round(d[i+3] * (lum - 20) / 26);
+      }
+      ctx.putImageData(img, 0, 0);
+    }
+
+    let duration = 0;
+    function onReady(){ duration = video.duration || duration; drawFrame(); }
+    video.addEventListener('loadedmetadata', onReady);
+    video.addEventListener('loadeddata', onReady);
+    video.addEventListener('canplay', onReady);
+
+    // iOS Safari in particular won't actually decode/paint a single frame of
+    // a video that's never been played, even once metadata has loaded and
+    // currentTime has been set by hand - scrubbing silently does nothing
+    // until playback has genuinely started at least once. This is the
+    // leading suspect for the S not showing up at all on some phones.
+    // Playing it (muted, inline, already off-screen) and immediately pausing
+    // again "primes" the decoder so there's a real frame to draw, without
+    // it ever visibly auto-playing.
+    let primed = false;
+    function primePlayback(){
+      if(primed) return;
+      const p = video.play();
+      if(p && typeof p.then === 'function'){
+        p.then(()=>{ video.pause(); primed = true; onReady(); }).catch(()=>{});
+      }
+    }
+    video.load();
+    video.addEventListener('loadedmetadata', primePlayback, { once:true });
+    // play() can require a user gesture on some browsers before it resolves -
+    // retry on the very first touch of the stage as a fallback
+    stage.addEventListener('pointerdown', primePlayback, { once:true });
+
+    // the clip is encoded with every single frame as its own keyframe
+    // specifically so any timestamp can be seeked instantly rather than
+    // decoding forward from a distant keyframe (the old encode had exactly
+    // one keyframe for the whole clip, which is what made scrubbing feel
+    // laggy/stuttery). Seeks are also coalesced below - if a new one comes in
+    // before the last finishes, only the latest requested time is applied
+    // once the current seek completes, so a fast drag never queues up.
+    let seeking = false, pendingT = null;
+    function requestSeek(t){
+      if(seeking){ pendingT = t; return; }
+      seeking = true;
+      video.currentTime = t;
+    }
+    video.addEventListener('seeked', ()=>{
+      drawFrame();
+      if(pendingT !== null){
+        const t = pendingT; pendingT = null;
+        video.currentTime = t;
+      } else {
+        seeking = false;
+      }
+    });
+
+    // the filmed clip only covers one arc of rotation, not a full loop back
+    // to its own starting angle, so a true seamless 360 wrap would visibly
+    // pop at the seam. Ping-ponging between the two ends instead means a
+    // drag never hits a hard stop/wall - it keeps turning smoothly, just
+    // reversing direction at each end, which is as close to an endless spin
+    // as a single filmed arc can honestly get. rawDrag itself is completely
+    // unbounded so the drag gesture itself never feels clamped either.
+    function pingPong(t, len){
+      if(len <= 0) return 0;
+      const period = len * 2;
+      let m = t % period;
+      if(m < 0) m += period;
+      return m <= len ? m : period - m;
+    }
+
+    let dragging = false, lastPX = 0, rawDrag = 0, vel = 0, coasting = false;
+    // the raw pointer target and what's actually seeked to are now two
+    // separate numbers: rawDrag jumps straight to wherever the pointer is,
+    // but displayDrag glides toward it a little at a time every frame. Fast
+    // or uneven pointermove bursts (very common, especially on touchscreens)
+    // used to translate directly into a seek each time, which could feel a
+    // little jerky if the browser's seek/decode couldn't quite keep pace -
+    // easing the value that's actually drawn smooths that out regardless of
+    // how choppy the raw input is.
+    let displayDrag = 0, driving = false;
+    function driveTick(){
+      displayDrag += (rawDrag - displayDrag) * 0.35;
+      requestSeek(pingPong(displayDrag, duration));
+      if(dragging || coasting || Math.abs(rawDrag - displayDrag) > 0.0004){
+        requestAnimationFrame(driveTick);
+      } else {
+        driving = false;
+      }
+    }
+    function ensureDriving(){
+      if(!driving){ driving = true; requestAnimationFrame(driveTick); }
+    }
+    function coastTick(){
+      if(!coasting) return;
+      vel *= 0.93;
+      rawDrag += vel;
+      if(Math.abs(vel) < 0.0006){ coasting = false; return; }
+      requestAnimationFrame(coastTick);
+    }
+    stage.addEventListener('pointerdown', e=>{
+      if(!duration) return;
+      // guard against a still-resolving priming play() (see above) fighting
+      // a seek the instant a drag starts
+      video.pause();
+      dragging = true; coasting = false; lastPX = e.clientX; vel = 0;
+      stage.setPointerCapture(e.pointerId);
+      ensureDriving();
+    });
+    stage.addEventListener('pointermove', e=>{
+      if(!dragging || !duration) return;
+      const dx = e.clientX - lastPX;
+      lastPX = e.clientX;
+      const step = dx * 0.008;
+      rawDrag += step;
+      vel = vel * 0.6 + step * 0.4;
+    });
+    const stopDrag = ()=>{
+      if(!dragging) return;
+      dragging = false;
+      // a little momentum on release - the S keeps turning and eases to a
+      // stop instead of dead-stopping the instant you lift your finger
+      if(Math.abs(vel) > 0.0008){ coasting = true; requestAnimationFrame(coastTick); ensureDriving(); }
+    };
+    stage.addEventListener('pointerup', stopDrag);
+    stage.addEventListener('pointerleave', stopDrag);
+    stage.addEventListener('pointercancel', stopDrag);
+  })();
+</script>
+<script>
+  // passive cursor-parallax on the hero background - same "the whole scene
+  // subtly follows your cursor" feel as unseen.co's landing page, and as
+  // the S World scene already has. Background layer (the colour bloom)
+  // drifts the most, the S monogram's stage drifts a touch too, for a
+  // simple sense of depth; mouse-only, skipped on touch devices.
+  (function(){
+    if(matchMedia('(pointer:coarse)').matches) return;
+    const bg = document.getElementById('heroBg');
+    const glow = document.getElementById('heroGlow');
+    const stage = document.getElementById('heroSStage');
+    if(!bg) return;
+    let tx = 0, ty = 0, cx = 0, cy = 0;
+    addEventListener('pointermove', e=>{
+      tx = e.clientX / innerWidth - 0.5;
+      ty = e.clientY / innerHeight - 0.5;
+    });
+    function tick(){
+      requestAnimationFrame(tick);
+      cx += (tx - cx) * 0.05;
+      cy += (ty - cy) * 0.05;
+      bg.style.transform = `translate3d(${cx * -46}px, ${cy * -30}px, 0)`;
+      if(glow) glow.style.transform = `translate(-50%,-50%) translate3d(${cx * -20}px, ${cy * -14}px, 0)`;
+      if(stage) stage.style.transform = `translate(-50%,-50%) translate3d(${cx * -12}px, ${cy * -8}px, 0)`;
+    }
+    tick();
+  })();
+</script>
+</body>
+</html>
