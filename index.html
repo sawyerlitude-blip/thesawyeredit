@@ -1281,6 +1281,13 @@ function frame(nowMs){
   // S pose
   var tg=sTarget();
   var ks=1-Math.exp(-dt*3.2);
+  if(S.aspect<.9){ // phones: the S swoops in/out over the TOP edge so it never crosses the content in the middle
+    var lt=S._lt||(S._lt={y:tg.y,z:tg.z,h:tg.h});
+    if(tg.h>.01&&sCur.h>.01&&Math.abs(tg.y-lt.y)+Math.abs(tg.z-lt.z)+Math.abs(tg.h-lt.h)>.4) S._via=1;
+    lt.y=tg.y;lt.z=tg.z;lt.h=tg.h;
+    if(S._via===1){ tg={x:tg.x,y:3.4,z:tg.z,h:tg.h*.7,a:1}; ks=1-Math.exp(-dt*5.5); if(sCur.y>2.4)S._via=2 }
+    else if(S._via===2){ ks=1-Math.exp(-dt*5.5); if(Math.abs(sCur.y-tg.y)+Math.abs(sCur.z-tg.z)<.25)S._via=0 }
+  }
   sCur.x+=(tg.x-sCur.x)*ks; sCur.y+=(tg.y-sCur.y)*ks; sCur.z+=(tg.z-sCur.z)*ks; sCur.h+=(tg.h-sCur.h)*ks;
   var bob=Math.sin(time*.9)*.025;
   sGroup.position.set(sCur.x+S.pointer.sx*.05,sCur.y+bob+S.pointer.sy*.03,sCur.z);
