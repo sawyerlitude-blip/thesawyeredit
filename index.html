@@ -6,6 +6,7 @@
 <title>The Sawyer Edit | Social Media Manager &amp; Content Creator for Hospitality Brands in London</title>
 <meta name="description" content="The Sawyer Edit — social media and content creation for hospitality brands in London. Reels, photography and campaigns for AMANO Group, Aubaine and London pubs.">
 <link rel="canonical" href="https://thesawyeredit.com/">
+<noscript><meta http-equiv="refresh" content="0;url=index-classic.html"></noscript>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Playfair+Display:ital@1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -415,8 +416,20 @@ body.det header.hud .menu-btn{opacity:0;pointer-events:none}
 </div></div>
 
 <div id="wipe"><span id="wipeT">Work</span></div>
-<div id="nowebgl">Your browser couldn't start WebGL, so the 3D site can't run here.<br><a href="index-classic.html" style="color:#e0a045">Open the classic version</a></div>
+<div id="nowebgl">Your browser couldn't start WebGL, so the 3D site can't run here.<br><a href="index-classic.html" style="color:#e0a045">Opening the classic version…</a></div>
 
+<script>
+/* safety net: if the 3D scene can't start (old/locked-down browser, slow network, script error) offer the lighter classic site */
+(function(){
+  function fb(){ if(window.__booted||window.__fb)return; window.__fb=1;
+    var d=document.createElement('div');
+    d.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:9999;padding:18px;text-align:center;background:#0a0807;color:#f6f1ea;font:14px/1.5 system-ui,sans-serif';
+    d.innerHTML='Taking too long? <a href="index-classic.html" style="color:#e0a045">Open the lighter version</a>';
+    document.body.appendChild(d); }
+  setTimeout(fb,12000);
+  window.addEventListener('error',function(){setTimeout(fb,3000)});
+})();
+</script>
 <script>/**
  * @license
  * Copyright 2010-2021 Three.js Authors
@@ -444,7 +457,7 @@ var small = Math.min(innerWidth,innerHeight) < 700;
 var canvas = $('#gl'), renderer;
 try{
   renderer = new THREE.WebGLRenderer({canvas:canvas,antialias:!small,powerPreference:'high-performance'});
-}catch(e){ $('#nowebgl').style.display='grid'; $('#loader').style.display='none'; return; }
+}catch(e){ $('#nowebgl').style.display='grid'; $('#loader').style.display='none'; if(LIVE)setTimeout(function(){location.replace('index-classic.html')},2500); return; }
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, small?1.5:2));
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
